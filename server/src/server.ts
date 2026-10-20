@@ -1,6 +1,7 @@
 import { crearApp } from './app.js';
 import { env } from './shared/config/env.js';
 import { logger } from './shared/logger.js';
+import { prisma } from './shared/db.js';
 
 const app = crearApp();
 
@@ -16,7 +17,10 @@ server.on('error', (err) => {
 // Cierre ordenado: Docker envia SIGTERM al detener el contenedor
 function apagar(senal: string) {
   logger.info(`${senal} recibido, cerrando servidor`);
-  server.close(() => process.exit(0));
+  server.close(async () => {
+    await prisma.$disconnect();
+    process.exit(0);
+  });
   setTimeout(() => process.exit(1), 10_000).unref();
 }
 
