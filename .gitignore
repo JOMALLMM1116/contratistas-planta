@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+
+# Builds
+dist/
+build/
+
+# Variables de entorno (secretos)
+.env
+.env.*
+!.env.example
+
+# Archivos subidos por usuarios
+uploads/
+
+# Pruebas y logs
+coverage/
+*.log
+logs/
+
+# Sistema y editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+

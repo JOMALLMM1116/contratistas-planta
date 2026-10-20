@@ -1,0 +1,19 @@
+# Forzar saltos de línea LF en todo el repositorio
+* text=auto eol=lf
+
+# Archivos de Windows que sí necesitan CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binarios: no tocar
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.xlsx binary
+*.woff binary
+*.woff2 binary
