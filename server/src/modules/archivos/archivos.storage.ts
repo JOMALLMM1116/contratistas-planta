@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { RequestHandler } from 'express';
 import multer from 'multer';
 import { AppError } from '../../shared/errors/app-error.js';
+import { env } from '../../shared/config/env.js';
 
 export const MAX_MB = 10;
 export const MAX_BYTES = MAX_MB * 1024 * 1024;
@@ -15,7 +16,9 @@ export const TIPOS_PERMITIDOS = new Map<string, string>([
   ['image/png', '.png'],
 ]);
 
-export const UPLOADS_DIR = path.resolve(process.cwd(), 'uploads');
+// Configurable por UPLOADS_DIR (relativa a la carpeta del servidor, o absoluta).
+// En produccion se monta un volumen de Docker en esta ruta.
+export const UPLOADS_DIR = path.resolve(process.cwd(), env.UPLOADS_DIR);
 mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const upload = multer({

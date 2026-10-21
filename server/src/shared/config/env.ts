@@ -12,6 +12,10 @@ const esquemaEnv = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL es obligatoria'),
   CORS_ORIGINS: z.string().default(''),
+
+  // Carpeta de documentos y fotos subidos. En produccion apunta a un volumen
+  // de Docker para que los archivos sobrevivan a cada despliegue.
+  UPLOADS_DIR: z.string().min(1).default('uploads'),
 });
 
 const resultado = esquemaEnv.safeParse(process.env);
