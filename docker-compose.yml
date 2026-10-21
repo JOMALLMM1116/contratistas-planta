@@ -23,7 +23,8 @@ services:
     image: ghcr.io/amacneil/dbmate:2
     container_name: cp-dbmate
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      # URL interna de Docker, armada con las mismas variables que usa postgres
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
       DBMATE_MIGRATIONS_DIR: /db/migrations
       DBMATE_NO_DUMP_SCHEMA: "true"
     volumes:

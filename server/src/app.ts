@@ -1,3 +1,4 @@
+import './shared/config/zod.js';
 import { randomUUID } from 'node:crypto';
 import express from 'express';
 import helmet from 'helmet';
