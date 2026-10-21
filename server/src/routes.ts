@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { env } from './shared/config/env.js';
 import { prisma } from './shared/db.js';
+import { zonasRouter } from './modules/zonas/zonas.routes.js';
 
-// Aqui se montaran los routers de cada modulo (auth, empresas, solicitudes, ...)
 export const apiRouter = Router();
 
 apiRouter.get('/health', async (_req, res) => {
@@ -24,3 +24,7 @@ apiRouter.get('/health', async (_req, res) => {
     fecha: new Date().toISOString(),
   });
 });
+
+// ---- Modulos (una linea por modulo) ----
+apiRouter.use('/zonas', zonasRouter);
+
