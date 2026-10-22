@@ -12,6 +12,8 @@ import { contratistasRouter } from './modules/contratistas/contratistas.routes.j
 import { equiposRouter } from './modules/equipos/equipos.routes.js';
 import { archivosRouter } from './modules/archivos/archivos.routes.js';
 import { solicitudesRouter } from './modules/solicitudes/solicitudes.routes.js';
+import { documentosRouter } from './modules/documentos/documentos.routes.js';
+import { contratistaCapacitacionesRouter } from './modules/contratista-capacitaciones/contratista-capacitaciones.routes.js';
 
 export const apiRouter = Router();
 
@@ -47,3 +49,5 @@ apiRouter.use('/contratistas', contratistasRouter);
 apiRouter.use('/equipos', equiposRouter);
 apiRouter.use('/archivos', archivosRouter);
 apiRouter.use('/solicitudes', solicitudesRouter);
+apiRouter.use('/documentos', documentosRouter);
+apiRouter.use('/contratista-capacitaciones', contratistaCapacitacionesRouter);
