@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "db:pull": "prisma db pull",
     "db:generate": "prisma generate",
-    "db:seed": "tsx src/scripts/seed-demo.ts"
+    "db:seed": "tsx src/scripts/seed-demo.ts",
+    "db:seed:flujo": "tsx src/scripts/seed-flujo-demo.ts"
   },
   "keywords": [],
   "type": "module",
@@ -34,6 +35,7 @@
     "pdfkit": "^0.20.2",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
+    "qrcode": "^1.5.4",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -44,6 +46,7 @@
     "@types/node": "^26.6.5",
     "@types/nodemailer": "^8.0.2",
     "@types/pdfkit": "^0.17.7",
+    "@types/qrcode": "^1.5.6",
     "pino-pretty": "^13.2.0",
     "prisma": "^7.10.1",
     "tsx": "^4.23.15",
