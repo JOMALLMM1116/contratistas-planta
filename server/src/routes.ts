@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { env } from './shared/config/env.js';
 import { prisma } from './shared/db.js';
+import { authRouter } from './modules/auth/auth.routes.js';
 import { zonasRouter } from './modules/zonas/zonas.routes.js';
 import { tiposTrabajoRouter } from './modules/tipos-trabajo/tipos-trabajo.routes.js';
 import { tiposDocumentoRouter } from './modules/tipos-documento/tipos-documento.routes.js';
@@ -41,6 +42,7 @@ apiRouter.get('/health', async (_req, res) => {
 });
 
 // ---- Modulos (una linea por modulo) ----
+apiRouter.use('/auth', authRouter);
 apiRouter.use('/zonas', zonasRouter);
 apiRouter.use('/tipos-trabajo', tiposTrabajoRouter);
 apiRouter.use('/tipos-documento', tiposDocumentoRouter);
