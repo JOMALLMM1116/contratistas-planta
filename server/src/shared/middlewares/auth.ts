@@ -33,3 +33,13 @@ export function requierePermiso(...codigos: string[]): RequestHandler {
     next(new AppError(403, 'SIN_PERMISO', 'No tiene permiso para realizar esta operacion'));
   };
 }
+
+// Consultar (GET) queda libre para cualquier usuario con sesion;
+// crear, modificar o eliminar exige alguno de los permisos indicados.
+export function requierePermisoEscritura(...codigos: string[]): RequestHandler {
+  const verificar = requierePermiso(...codigos);
+  return (req, res, next) => {
+    if (req.method === 'GET' || req.method === 'HEAD') return next();
+    return verificar(req, res, next);
+  };
+}
