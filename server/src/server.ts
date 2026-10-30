@@ -2,11 +2,14 @@ import { crearApp } from './app.js';
 import { env } from './shared/config/env.js';
 import { logger } from './shared/logger.js';
 import { prisma } from './shared/db.js';
+import { iniciarJobNotificaciones } from './modules/notificaciones/notificaciones.job.js';
 
 const app = crearApp();
 
 const server = app.listen(env.PORT, () => {
   logger.info(`Servidor escuchando en http://localhost:${env.PORT}`);
+  // Tareas programadas (revision diaria de vencimientos)
+  iniciarJobNotificaciones();
 });
 
 server.on('error', (err) => {
