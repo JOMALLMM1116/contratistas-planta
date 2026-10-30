@@ -16,6 +16,14 @@ const esquemaEnv = z.object({
   // Carpeta de documentos y fotos subidos. En produccion apunta a un volumen
   // de Docker para que los archivos sobrevivan a cada despliegue.
   UPLOADS_DIR: z.string().min(1).default('uploads'),
+
+  // Autenticacion
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
+  ACCESS_TOKEN_MINUTOS: z.coerce.number().int().positive().default(15),
+  REFRESH_TOKEN_DIAS: z.coerce.number().int().positive().default(7),
+
+  // Solo para el script de datos de demostracion
+  DEMO_PASSWORD: z.string().min(8).optional(),
 });
 
 const resultado = esquemaEnv.safeParse(process.env);

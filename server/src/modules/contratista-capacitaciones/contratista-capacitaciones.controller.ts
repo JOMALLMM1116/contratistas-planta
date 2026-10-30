@@ -33,7 +33,8 @@ export async function actualizar(req: Request, res: Response) {
 
 export async function revisar(req: Request, res: Response) {
   const { id } = registroIdSchema.parse(req.params);
-  const datos = revisarRegistroSchema.parse(req.body);
+  // Quien revisa sale de la sesion, nunca del cuerpo de la peticion
+  const datos = revisarRegistroSchema.parse({ ...req.body, revisado_por: req.usuario!.id });
   res.json({ datos: await registrosService.revisar(id, datos) });
 }
 

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { env } from './shared/config/env.js';
 import { prisma } from './shared/db.js';
+import { requiereAuth, requierePermiso, requierePermisoEscritura } from './shared/middlewares/auth.js';
+import { authRouter } from './modules/auth/auth.routes.js';
 import { zonasRouter } from './modules/zonas/zonas.routes.js';
 import { tiposTrabajoRouter } from './modules/tipos-trabajo/tipos-trabajo.routes.js';
 import { tiposDocumentoRouter } from './modules/tipos-documento/tipos-documento.routes.js';
@@ -20,6 +22,7 @@ import { reportesRouter } from './modules/reportes/reportes.routes.js';
 
 export const apiRouter = Router();
 
+// Publico: lo usan Docker y el monitoreo
 apiRouter.get('/health', async (_req, res) => {
   let baseDatos: 'ok' | 'error' = 'ok';
 
@@ -40,20 +43,32 @@ apiRouter.get('/health', async (_req, res) => {
   });
 });
 
-// ---- Modulos (una linea por modulo) ----
-apiRouter.use('/zonas', zonasRouter);
-apiRouter.use('/tipos-trabajo', tiposTrabajoRouter);
-apiRouter.use('/tipos-documento', tiposDocumentoRouter);
-apiRouter.use('/capacitaciones', capacitacionesRouter);
-apiRouter.use('/requisitos-tipo-trabajo', requisitosRouter);
-apiRouter.use('/checklist-plantillas', checklistPlantillasRouter);
-apiRouter.use('/empresas-contratistas', empresasRouter);
-apiRouter.use('/contratistas', contratistasRouter);
-apiRouter.use('/equipos', equiposRouter);
+// Publico: login, refresh y logout
+apiRouter.use('/auth', authRouter);
+
+// ---- De aqui en adelante TODO exige sesion ----
+apiRouter.use(requiereAuth);
+
+// Catalogos: consultar cualquiera; modificar, seguridad industrial y admin
+apiRouter.use('/zonas', requierePermisoEscritura('requisitos.gestionar'), zonasRouter);
+apiRouter.use('/tipos-trabajo', requierePermisoEscritura('requisitos.gestionar'), tiposTrabajoRouter);
+apiRouter.use('/tipos-documento', requierePermisoEscritura('requisitos.gestionar'), tiposDocumentoRouter);
+apiRouter.use('/capacitaciones', requierePermisoEscritura('requisitos.gestionar'), capacitacionesRouter);
+apiRouter.use('/requisitos-tipo-trabajo', requierePermisoEscritura('requisitos.gestionar'), requisitosRouter);
+apiRouter.use('/checklist-plantillas', requierePermisoEscritura('requisitos.gestionar'), checklistPlantillasRouter);
+
+// Empresas, contratistas y equipos
+apiRouter.use('/empresas-contratistas', requierePermisoEscritura('empresas.gestionar'), empresasRouter);
+apiRouter.use('/contratistas', requierePermisoEscritura('contratistas.gestionar'), contratistasRouter);
+apiRouter.use('/equipos', requierePermisoEscritura('contratistas.gestionar'), equiposRouter);
+
+// Reportes: incluso consultarlos exige permiso
+apiRouter.use('/reportes', requierePermiso('reportes.ver'), reportesRouter);
+
+// Permisos por accion dentro de cada modulo (paso 11B-2b)
 apiRouter.use('/archivos', archivosRouter);
 apiRouter.use('/solicitudes', solicitudesRouter);
 apiRouter.use('/documentos', documentosRouter);
 apiRouter.use('/contratista-capacitaciones', contratistaCapacitacionesRouter);
 apiRouter.use('/permisos-trabajo', permisosTrabajoRouter);
 apiRouter.use('/notificaciones', notificacionesRouter);
-apiRouter.use('/reportes', reportesRouter);
