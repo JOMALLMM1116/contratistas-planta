@@ -14,6 +14,7 @@ import { archivosRouter } from './modules/archivos/archivos.routes.js';
 import { solicitudesRouter } from './modules/solicitudes/solicitudes.routes.js';
 import { documentosRouter } from './modules/documentos/documentos.routes.js';
 import { contratistaCapacitacionesRouter } from './modules/contratista-capacitaciones/contratista-capacitaciones.routes.js';
+import { permisosTrabajoRouter } from './modules/permisos-trabajo/permisos-trabajo.routes.js';
 
 export const apiRouter = Router();
 
@@ -51,3 +52,4 @@ apiRouter.use('/archivos', archivosRouter);
 apiRouter.use('/solicitudes', solicitudesRouter);
 apiRouter.use('/documentos', documentosRouter);
 apiRouter.use('/contratista-capacitaciones', contratistaCapacitacionesRouter);
+apiRouter.use('/permisos-trabajo', permisosTrabajoRouter);
