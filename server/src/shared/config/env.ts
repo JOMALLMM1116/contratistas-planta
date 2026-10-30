@@ -6,6 +6,9 @@ import { z } from 'zod';
 // En produccion no existe el archivo: las variables llegan desde Docker.
 dotenv.config({ path: path.resolve(process.cwd(), '..', '.env'), quiet: true });
 
+// Una variable vacia en el .env (SMTP_HOST=) se trata como no definida
+const opcional = z.preprocess((v) => (v === '' ? undefined : v), z.string().optional());
+
 const esquemaEnv = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -21,6 +24,14 @@ const esquemaEnv = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
   ACCESS_TOKEN_MINUTOS: z.coerce.number().int().positive().default(15),
   REFRESH_TOKEN_DIAS: z.coerce.number().int().positive().default(7),
+
+  // Correo y enlaces (recuperacion de contrasena, notificaciones)
+  APP_URL: z.url().default('http://localhost:5173'),
+  SMTP_HOST: opcional,
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: opcional,
+  SMTP_PASS: opcional,
+  SMTP_FROM: z.string().default('Contratistas Planta <no-reply@planta.test>'),
 
   // Solo para el script de datos de demostracion
   DEMO_PASSWORD: z.string().min(8).optional(),
