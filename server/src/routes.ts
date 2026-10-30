@@ -20,6 +20,7 @@ import { permisosTrabajoRouter } from './modules/permisos-trabajo/permisos-traba
 import { notificacionesRouter } from './modules/notificaciones/notificaciones.routes.js';
 import { reportesRouter } from './modules/reportes/reportes.routes.js';
 import { credencialesRouter } from './modules/credenciales/credenciales.routes.js';
+import { garitaRouter } from './modules/garita/garita.routes.js';
 
 export const apiRouter = Router();
 
@@ -74,3 +75,4 @@ apiRouter.use('/contratista-capacitaciones', contratistaCapacitacionesRouter);
 apiRouter.use('/permisos-trabajo', permisosTrabajoRouter);
 apiRouter.use('/notificaciones', notificacionesRouter);
 apiRouter.use('/credenciales', credencialesRouter);
+apiRouter.use('/garita', garitaRouter);
