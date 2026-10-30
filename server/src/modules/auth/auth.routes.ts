@@ -19,7 +19,26 @@ const limiteLogin = rateLimit({
   },
 });
 
+// Recuperacion: 5 solicitudes por IP cada 15 minutos (evita abuso del envio de correos)
+const limiteRecuperacion = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: {
+    error: {
+      code: 'DEMASIADOS_INTENTOS',
+      message: 'Demasiadas solicitudes de recuperacion; intente de nuevo en 15 minutos',
+    },
+  },
+});
+
 authRouter.post('/login', limiteLogin, authController.login);
 authRouter.post('/refresh', authController.refresh);
 authRouter.post('/logout', authController.logout);
 authRouter.get('/me', requiereAuth, authController.yo);
+
+// Recuperacion y cambio de contrasena
+authRouter.post('/recuperar', limiteRecuperacion, authController.recuperar);
+authRouter.post('/restablecer', limiteRecuperacion, authController.restablecer);
+authRouter.post('/cambiar-password', requiereAuth, authController.cambiarPassword);
