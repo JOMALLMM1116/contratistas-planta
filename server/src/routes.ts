@@ -19,6 +19,7 @@ import { contratistaCapacitacionesRouter } from './modules/contratista-capacitac
 import { permisosTrabajoRouter } from './modules/permisos-trabajo/permisos-trabajo.routes.js';
 import { notificacionesRouter } from './modules/notificaciones/notificaciones.routes.js';
 import { reportesRouter } from './modules/reportes/reportes.routes.js';
+import { credencialesRouter } from './modules/credenciales/credenciales.routes.js';
 
 export const apiRouter = Router();
 
@@ -43,7 +44,7 @@ apiRouter.get('/health', async (_req, res) => {
   });
 });
 
-// Publico: login, refresh y logout
+// Publico: login, refresh, logout y recuperacion de contrasena
 apiRouter.use('/auth', authRouter);
 
 // ---- De aqui en adelante TODO exige sesion ----
@@ -65,10 +66,11 @@ apiRouter.use('/equipos', requierePermisoEscritura('contratistas.gestionar'), eq
 // Reportes: incluso consultarlos exige permiso
 apiRouter.use('/reportes', requierePermiso('reportes.ver'), reportesRouter);
 
-// Permisos por accion dentro de cada modulo (paso 11B-2b)
+// Permisos por accion dentro de cada modulo
 apiRouter.use('/archivos', archivosRouter);
 apiRouter.use('/solicitudes', solicitudesRouter);
 apiRouter.use('/documentos', documentosRouter);
 apiRouter.use('/contratista-capacitaciones', contratistaCapacitacionesRouter);
 apiRouter.use('/permisos-trabajo', permisosTrabajoRouter);
 apiRouter.use('/notificaciones', notificacionesRouter);
+apiRouter.use('/credenciales', credencialesRouter);
