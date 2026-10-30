@@ -19,7 +19,8 @@ export async function subir(req: Request, res: Response) {
   if (!req.file) {
     throw new AppError(400, 'ARCHIVO_REQUERIDO', 'Envie el archivo en el campo "archivo" (multipart/form-data)');
   }
-  res.status(201).json({ datos: await archivosService.registrar(req.file) });
+  // Quien sube el archivo sale de la sesion
+  res.status(201).json({ datos: await archivosService.registrar(req.file, req.usuario!.id) });
 }
 
 export async function descargar(req: Request, res: Response) {

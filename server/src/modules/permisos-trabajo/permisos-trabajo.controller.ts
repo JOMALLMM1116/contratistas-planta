@@ -13,6 +13,9 @@ import {
   revocarPermisoSchema,
 } from './permisos-trabajo.schemas.js';
 
+// En cada accion, el usuario responsable se toma de la sesion (req.usuario)
+// y reemplaza cualquier valor que venga en el cuerpo de la peticion.
+
 export async function listar(req: Request, res: Response) {
   const filtros = listarPermisosSchema.parse(req.query);
   const { datos, total } = await permisosService.listar(filtros);
@@ -25,25 +28,25 @@ export async function obtener(req: Request, res: Response) {
 }
 
 export async function crear(req: Request, res: Response) {
-  const datos = crearPermisoSchema.parse(req.body);
+  const datos = crearPermisoSchema.parse({ ...req.body, aprobado_por: req.usuario!.id });
   res.status(201).json({ datos: await permisosService.crear(datos) });
 }
 
 export async function iniciar(req: Request, res: Response) {
   const { id } = permisoIdSchema.parse(req.params);
-  const datos = iniciarPermisoSchema.parse(req.body);
+  const datos = iniciarPermisoSchema.parse({ ...(req.body ?? {}), usuario_id: req.usuario!.id });
   res.json({ datos: await permisosService.iniciar(id, datos) });
 }
 
 export async function cerrar(req: Request, res: Response) {
   const { id } = permisoIdSchema.parse(req.params);
-  const datos = cerrarPermisoSchema.parse(req.body);
+  const datos = cerrarPermisoSchema.parse({ ...(req.body ?? {}), usuario_id: req.usuario!.id });
   res.json({ datos: await permisosService.cerrar(id, datos) });
 }
 
 export async function revocar(req: Request, res: Response) {
   const { id } = permisoIdSchema.parse(req.params);
-  const datos = revocarPermisoSchema.parse(req.body);
+  const datos = revocarPermisoSchema.parse({ ...req.body, usuario_id: req.usuario!.id });
   res.json({ datos: await permisosService.revocar(id, datos) });
 }
 
@@ -65,7 +68,7 @@ export async function listarEvidencias(req: Request, res: Response) {
 
 export async function agregarEvidencia(req: Request, res: Response) {
   const { id } = permisoIdSchema.parse(req.params);
-  const datos = crearEvidenciaSchema.parse(req.body);
+  const datos = crearEvidenciaSchema.parse({ ...req.body, registrado_por: req.usuario!.id });
   res.status(201).json({ datos: await permisosService.agregarEvidencia(id, datos) });
 }
 
@@ -73,3 +76,4 @@ export async function eliminarEvidencia(req: Request, res: Response) {
   const { id, evidenciaId } = evidenciaParamsSchema.parse(req.params);
   res.json({ datos: await permisosService.eliminarEvidencia(id, evidenciaId) });
 }
+

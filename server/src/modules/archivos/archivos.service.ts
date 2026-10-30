@@ -81,7 +81,7 @@ export async function obtener(id: string) {
 }
 
 // Multer ya guardo el archivo en disco: aqui se verifica y se registra en la base
-export async function registrar(archivo: Express.Multer.File) {
+export async function registrar(archivo: Express.Multer.File, subidoPor: string) {
   try {
     const cabecera = await leerCabecera(archivo.path);
     if (!coincideFirma(archivo.mimetype, cabecera)) {
@@ -100,6 +100,7 @@ export async function registrar(archivo: Express.Multer.File) {
         tamano_bytes: BigInt(archivo.size),
         storage_key: archivo.filename,
         sha256,
+        subido_por: subidoPor,
       },
     });
     return serializar(creado);
