@@ -23,6 +23,10 @@ import { credencialesRouter } from './modules/credenciales/credenciales.routes.j
 import { garitaRouter } from './modules/garita/garita.routes.js';
 import { usuariosRouter } from './modules/usuarios/usuarios.routes.js';
 import { rolesRouter } from './modules/roles/roles.routes.js';
+import { incidentesRouter } from './modules/incidentes/incidentes.routes.js';
+import { auditoriaRouter } from './modules/auditoria/auditoria.routes.js';
+import { bloqueosRouter } from './modules/bloqueos/bloqueos.routes.js';
+
 
 export const apiRouter = Router();
 
@@ -80,3 +84,6 @@ apiRouter.use('/credenciales', credencialesRouter);
 apiRouter.use('/garita', garitaRouter);
 apiRouter.use('/usuarios', usuariosRouter);
 apiRouter.use('/roles', rolesRouter);
+apiRouter.use('/incidentes', incidentesRouter);
+apiRouter.use('/auditoria', auditoriaRouter);
+apiRouter.use('/bloqueos', bloqueosRouter);

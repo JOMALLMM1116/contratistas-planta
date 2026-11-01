@@ -174,6 +174,53 @@ async function revisarPermisos(hoy: Date, seguridad: string[]) {
   return { vencidos, notificaciones: await crearSinDuplicar(items) };
 }
 
+// Cambia el estado dentro de una transaccion: el trigger de la base escribe el historial
+// leyendo app.user_id y app.motivo (set_config local: solo vale para esta transaccion)
+async function marcarVencida(
+  tabla: 'solicitudes_acceso' | 'credenciales',
+  id: string,
+  desde: string,
+  motivo: string,
+) {
+  return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT set_config('app.user_id', '', true) AS usuario, set_config('app.motivo', ${motivo}, true) AS motivo`;
+    // El estado esperado va en el where: si otro lo cambio antes, no se actualiza nada
+    const { count } =
+      tabla === 'solicitudes_acceso'
+        ? await tx.solicitudes_acceso.updateMany({ where: { id, estado: desde }, data: { estado: 'vencida' } })
+        : await tx.credenciales.updateMany({ where: { id, estado: desde }, data: { estado: 'vencida' } });
+    return count;
+  });
+}
+
+// Una solicitud aprobada cuya fecha_fin ya paso se marca como vencida
+async function revisarSolicitudes(hoy: Date) {
+  const solicitudes = await prisma.solicitudes_acceso.findMany({
+    where: { estado: 'aprobada', fecha_fin: { lt: hoy } },
+    select: { id: true },
+  });
+
+  let vencidas = 0;
+  for (const s of solicitudes) {
+    vencidas += await marcarVencida('solicitudes_acceso', s.id, 'aprobada', 'Vencimiento automatico');
+  }
+  return vencidas;
+}
+
+// Una credencial activa cuyo expira_en ya paso se marca como vencida
+async function revisarCredenciales() {
+  const credenciales = await prisma.credenciales.findMany({
+    where: { estado: 'activa', expira_en: { lt: new Date() } },
+    select: { id: true },
+  });
+
+  let vencidas = 0;
+  for (const c of credenciales) {
+    vencidas += await marcarVencida('credenciales', c.id, 'activa', 'Vencimiento automatico');
+  }
+  return vencidas;
+}
+
 export async function ejecutarRevision() {
   if (enCurso) throw new AppError(409, 'REVISION_EN_CURSO', 'Ya hay una revision en ejecucion');
   enCurso = true;
@@ -185,6 +232,8 @@ export async function ejecutarRevision() {
     const documentos = await revisarDocumentos(hoy, seguridad);
     const capacitaciones = await revisarCapacitaciones(hoy, seguridad);
     const permisos = await revisarPermisos(hoy, seguridad);
+    const solicitudes_vencidas = await revisarSolicitudes(hoy);
+    const credenciales_vencidas = await revisarCredenciales();
 
     return {
       fecha: fechaISO(hoy),
@@ -192,6 +241,8 @@ export async function ejecutarRevision() {
       capacitaciones,
       permisos_vencidos: permisos.vencidos,
       notificaciones_permisos: permisos.notificaciones,
+      solicitudes_vencidas,
+      credenciales_vencidas,
     };
   } finally {
     enCurso = false;
