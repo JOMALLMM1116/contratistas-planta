@@ -9,11 +9,15 @@ const PASSWORD = process.env.DEMO_PASSWORD ?? '';
 const correoPrueba = `prueba.usuarios.${Date.now()}@planta.test`;
 const passwordInicial = 'PruebaInicial2026';
 
-async function sesion(email: string) {
+async function sesion(email: string, password = PASSWORD) {
   const agente = request.agent(app);
-  const respuesta = await agente.post('/api/auth/login').send({ email, password: PASSWORD });
+  const respuesta = await agente.post('/api/auth/login').send({ email, password });
   expect(respuesta.status, `login de ${email}`).toBe(200);
   return agente;
+}
+
+async function sesionesAbiertas(usuarioId: string) {
+  return prisma.sesiones.count({ where: { usuario_id: usuarioId, revocada_en: null } });
 }
 
 afterAll(async () => {
@@ -23,6 +27,7 @@ afterAll(async () => {
 
 describe('usuarios y roles', () => {
   let admin: Awaited<ReturnType<typeof sesion>>;
+  let adminId: string;
   let rolContratistaId: number;
   let rolSeguridadId: number;
   let empresaId: string;
@@ -30,6 +35,7 @@ describe('usuarios y roles', () => {
 
   beforeAll(async () => {
     admin = await sesion('admin@planta.test');
+    adminId = (await prisma.usuarios.findUniqueOrThrow({ where: { email: 'admin@planta.test' }, select: { id: true } })).id;
     const roles = await admin.get('/api/roles');
     expect(roles.status).toBe(200);
     rolContratistaId = roles.body.datos.find((r: { codigo: string }) => r.codigo === 'contratista').id;
@@ -57,6 +63,19 @@ describe('usuarios y roles', () => {
     const garita = await sesion('garita@planta.test');
     expect((await garita.get('/api/usuarios')).status).toBe(403);
     expect((await garita.get('/api/roles')).status).toBe(403);
+  });
+
+  it('el administrador no puede desactivarse, cambiar su rol ni restablecer su propia contrasena', async () => {
+    const desactivarse = await admin.patch(`/api/usuarios/${adminId}`).send({ activo: false });
+    expect(desactivarse.status).toBe(409);
+    expect(desactivarse.body.error.code).toBe('OPERACION_SOBRE_SI_MISMO');
+
+    expect((await admin.patch(`/api/usuarios/${adminId}`).send({ rol_id: rolSeguridadId })).status).toBe(409);
+    expect((await admin.post(`/api/usuarios/${adminId}/restablecer-password`)).status).toBe(409);
+
+    const sigueAdmin = await prisma.usuarios.findUniqueOrThrow({ where: { id: adminId }, include: { roles: true } });
+    expect(sigueAdmin.activo).toBe(true);
+    expect(sigueAdmin.roles.codigo).toBe('admin');
   });
 
   it('un rol externo exige empresa', async () => {
@@ -92,30 +111,46 @@ describe('usuarios y roles', () => {
     expect(duplicado.status).toBe(409);
   });
 
-  it('actualiza el usuario y deja la accion en la auditoria', async () => {
+  it('desactivar cierra de inmediato las sesiones del usuario y queda auditado', async () => {
+    const usuarioPrueba = await sesion(correoPrueba, passwordInicial);
+    expect(await sesionesAbiertas(nuevoId)).toBeGreaterThan(0);
+
     const desactivado = await admin.patch(`/api/usuarios/${nuevoId}`).send({ activo: false });
     expect(desactivado.status).toBe(200);
     expect(desactivado.body.datos.activo).toBe(false);
+    expect(await sesionesAbiertas(nuevoId)).toBe(0);
+    expect((await usuarioPrueba.post('/api/auth/refresh')).status).toBe(401);
     expect(await prisma.auditoria.count({ where: { accion: 'USUARIO_ACTUALIZADO', entidad_id: nuevoId } })).toBeGreaterThanOrEqual(1);
 
     const reactivado = await admin.patch(`/api/usuarios/${nuevoId}`).send({ activo: true });
     expect(reactivado.status).toBe(200);
   });
 
-  it('cambiar el rol queda auditado', async () => {
-    const r = await admin.patch(`/api/usuarios/${nuevoId}`).send({ rol_id: rolSeguridadId });
+  it('cambiar el rol cierra las sesiones, queda auditado y un rol interno no guarda empresa', async () => {
+    await sesion(correoPrueba, passwordInicial);
+    expect(await sesionesAbiertas(nuevoId)).toBeGreaterThan(0);
+
+    const r = await admin.patch(`/api/usuarios/${nuevoId}`).send({ rol_id: rolSeguridadId, empresa_id: empresaId });
     expect(r.status).toBe(200);
     expect(r.body.datos.roles.codigo).toBe('seguridad_industrial');
+    expect(r.body.datos.empresa_id).toBeNull();
+    expect(await sesionesAbiertas(nuevoId)).toBe(0);
     expect(await prisma.auditoria.count({ where: { accion: 'USUARIO_ROL_CAMBIADO', entidad_id: nuevoId } })).toBeGreaterThanOrEqual(1);
   });
 
-  it('restablecer la contrasena entrega una temporal y obliga a cambiarla', async () => {
+  it('restablecer la contrasena cierra las sesiones, entrega una temporal y obliga a cambiarla', async () => {
+    const usuarioPrueba = await sesion(correoPrueba, passwordInicial);
+
     const r = await admin.post(`/api/usuarios/${nuevoId}/restablecer-password`);
     expect(r.status).toBe(200);
     const temporal: string = r.body.datos.password_temporal;
     expect(temporal).toHaveLength(12);
     expect(r.body.datos.usuario.debe_cambiar_password).toBe(true);
     expect(JSON.stringify(r.body)).not.toContain('password_hash');
+
+    // La sesion abierta con la contrasena anterior ya no sirve
+    expect(await sesionesAbiertas(nuevoId)).toBe(0);
+    expect((await usuarioPrueba.post('/api/auth/refresh')).status).toBe(401);
 
     const anterior = await request(app).post('/api/auth/login').send({ email: correoPrueba, password: passwordInicial });
     expect(anterior.status).toBe(401);

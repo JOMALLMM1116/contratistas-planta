@@ -345,3 +345,14 @@ export async function cambiarPassword(usuarioId: string, actual: string, nueva: 
 
   await registrarAuditoria(req, { accion: 'PASSWORD_CAMBIADO', entidad: 'usuarios', entidad_id: usuario.id });
 }
+
+
+// Cierra todas las sesiones abiertas de un usuario. La usa el modulo de usuarios
+// al desactivarlo, cambiarle el rol o restablecerle la contrasena
+export async function cerrarTodasLasSesiones(usuarioId: string) {
+  const { count } = await prisma.sesiones.updateMany({
+    where: { usuario_id: usuarioId, revocada_en: null },
+    data: { revocada_en: new Date() },
+  });
+  return count;
+}

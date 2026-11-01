@@ -38,14 +38,14 @@ export async function crear(req: Request, res: Response) {
 export async function actualizar(req: Request, res: Response) {
   const { id } = usuarioIdSchema.parse(req.params);
   const datos = actualizarUsuarioSchema.parse(req.body);
-  const { usuario, antes, despues } = await usuariosService.actualizar(id, datos);
+  const { usuario, antes, despues, sesionesCerradas } = await usuariosService.actualizar(id, datos, req.usuario!.id);
 
   await registrarAuditoria(req, {
     accion: antes.rol !== despues.rol ? 'USUARIO_ROL_CAMBIADO' : 'USUARIO_ACTUALIZADO',
     entidad: 'usuarios',
     entidad_id: id,
     datos_antes: antes,
-    datos_despues: despues,
+    datos_despues: { ...despues, sesiones_cerradas: sesionesCerradas },
   });
 
   res.json({ datos: usuario });
@@ -53,13 +53,13 @@ export async function actualizar(req: Request, res: Response) {
 
 export async function restablecerPassword(req: Request, res: Response) {
   const { id } = usuarioIdSchema.parse(req.params);
-  const { usuario, password_temporal } = await usuariosService.restablecerPassword(id);
+  const { usuario, password_temporal, sesionesCerradas } = await usuariosService.restablecerPassword(id, req.usuario!.id);
 
   await registrarAuditoria(req, {
     accion: 'USUARIO_PASSWORD_RESTABLECIDA',
     entidad: 'usuarios',
     entidad_id: id,
-    datos_despues: { debe_cambiar_password: true },
+    datos_despues: { debe_cambiar_password: true, sesiones_cerradas: sesionesCerradas },
   });
 
   res.json({ datos: { usuario, password_temporal } });
