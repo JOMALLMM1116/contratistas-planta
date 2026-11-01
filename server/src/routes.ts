@@ -21,6 +21,8 @@ import { notificacionesRouter } from './modules/notificaciones/notificaciones.ro
 import { reportesRouter } from './modules/reportes/reportes.routes.js';
 import { credencialesRouter } from './modules/credenciales/credenciales.routes.js';
 import { garitaRouter } from './modules/garita/garita.routes.js';
+import { usuariosRouter } from './modules/usuarios/usuarios.routes.js';
+import { rolesRouter } from './modules/roles/roles.routes.js';
 import { incidentesRouter } from './modules/incidentes/incidentes.routes.js';
 import { auditoriaRouter } from './modules/auditoria/auditoria.routes.js';
 import { bloqueosRouter } from './modules/bloqueos/bloqueos.routes.js';
@@ -80,6 +82,8 @@ apiRouter.use('/permisos-trabajo', permisosTrabajoRouter);
 apiRouter.use('/notificaciones', notificacionesRouter);
 apiRouter.use('/credenciales', credencialesRouter);
 apiRouter.use('/garita', garitaRouter);
+apiRouter.use('/usuarios', usuariosRouter);
+apiRouter.use('/roles', rolesRouter);
 apiRouter.use('/incidentes', incidentesRouter);
 apiRouter.use('/auditoria', auditoriaRouter);
 apiRouter.use('/bloqueos', bloqueosRouter);
