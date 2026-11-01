@@ -120,3 +120,64 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ---- 3. Despliegue en el servidor de produccion ----
+  desplegar:
+    needs: imagen
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    # Nunca dos despliegues a la vez; si llega otro, espera su turno
+    concurrency:
+      group: despliegue-produccion
+      cancel-in-progress: false
+
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v5
+
+      - name: Preparar la conexion SSH
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Copiar compose y migraciones al servidor
+        run: |
+          scp -i ~/.ssh/deploy docker-compose.prod.yml "$DEPLOY_USER@$DEPLOY_HOST:/opt/contratistas-planta/"
+          scp -i ~/.ssh/deploy -r db "$DEPLOY_USER@$DEPLOY_HOST:/opt/contratistas-planta/"
+
+      - name: Actualizar la aplicacion
+        run: |
+          TAG="sha-${GITHUB_SHA::7}"
+          echo "Desplegando la version $TAG"
+          ssh -i ~/.ssh/deploy "$DEPLOY_USER@$DEPLOY_HOST" "TAG=$TAG bash -s" <<'REMOTO'
+          set -euo pipefail
+          cd /opt/contratistas-planta
+          # Version exacta en el .env: queda registrada y se puede volver atras
+          sed -i "s/^APP_TAG=.*/APP_TAG=${TAG}/" .env
+          docker compose -f docker-compose.prod.yml pull app
+          # Aplica migraciones pendientes y reinicia la app con la nueva imagen
+          docker compose -f docker-compose.prod.yml up -d
+          for intento in $(seq 1 30); do
+            if curl -fs http://127.0.0.1:3000/api/health > /dev/null; then
+              echo "Version ${TAG} en linea"
+              docker image prune -f
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "La aplicacion no respondio despues del despliegue"
+          docker compose -f docker-compose.prod.yml logs --tail 50 app
+          exit 1
+          REMOTO
+
+      - name: Verificar el sitio publico con HTTPS
+        run: curl -fsS "https://planta.jomadev.online/api/health"
