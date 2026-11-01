@@ -10,7 +10,8 @@
     "db:pull": "prisma db pull",
     "db:generate": "prisma generate",
     "db:seed": "tsx src/scripts/seed-demo.ts",
-    "db:seed:flujo": "tsx src/scripts/seed-flujo-demo.ts"
+    "db:seed:flujo": "tsx src/scripts/seed-flujo-demo.ts",
+    "test": "vitest run"
   },
   "keywords": [],
   "type": "module",
@@ -47,10 +48,13 @@
     "@types/nodemailer": "^8.0.2",
     "@types/pdfkit": "^0.17.7",
     "@types/qrcode": "^1.5.6",
+    "@types/supertest": "^7.2.1",
     "pino-pretty": "^13.2.0",
     "prisma": "^7.10.1",
+    "supertest": "^7.3.1",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
@@ -60,6 +64,7 @@
   "overrides": {
     "exceljs": {
       "uuid": "^11.1.1"
-    }
+    },
+    "minimatch": "^11.0.1"
   }
 }
