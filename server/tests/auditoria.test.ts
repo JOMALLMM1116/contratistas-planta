@@ -62,7 +62,8 @@ describe('consulta de auditoria', () => {
   });
 
   it('filtra por rango de fechas', async () => {
-    const hoy = new Date().toISOString().slice(0, 10);
+    // Fecha de hoy en Guatemala (el filtro interpreta las fechas en esa zona horaria)
+    const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guatemala' });
     const dentro = await seguridad.get(`/api/auditoria?desde=${hoy}&hasta=${hoy}`);
     expect(dentro.status).toBe(200);
     expect(dentro.body.meta.total).toBeGreaterThan(0);
