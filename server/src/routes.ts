@@ -21,6 +21,7 @@ import { notificacionesRouter } from './modules/notificaciones/notificaciones.ro
 import { reportesRouter } from './modules/reportes/reportes.routes.js';
 import { credencialesRouter } from './modules/credenciales/credenciales.routes.js';
 import { garitaRouter } from './modules/garita/garita.routes.js';
+import { bloqueosRouter } from './modules/bloqueos/bloqueos.routes.js';
 
 export const apiRouter = Router();
 
@@ -76,3 +77,4 @@ apiRouter.use('/permisos-trabajo', permisosTrabajoRouter);
 apiRouter.use('/notificaciones', notificacionesRouter);
 apiRouter.use('/credenciales', credencialesRouter);
 apiRouter.use('/garita', garitaRouter);
+apiRouter.use('/bloqueos', bloqueosRouter);
