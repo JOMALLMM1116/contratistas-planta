@@ -85,7 +85,8 @@ describe('incidentes', () => {
   });
 
   it('filtra por estado, severidad, contratista, empresa y fechas', async () => {
-    const hoy = new Date().toISOString().slice(0, 10);
+    // Fecha de hoy en Guatemala (el filtro interpreta las fechas en esa zona horaria)
+    const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guatemala' });
     const base = `/api/incidentes?estado=abierto&severidad=moderado&contratista_id=${contratistaId}&desde=${hoy}&hasta=${hoy}`;
     const r = await seguridad.get(base);
     expect(r.status).toBe(200);
