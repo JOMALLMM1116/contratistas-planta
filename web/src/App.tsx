@@ -3,6 +3,9 @@ import RutaProtegida from './sesion/RutaProtegida'
 import Layout from './layout/Layout'
 import LoginPagina from './modulos/auth/LoginPagina'
 import InicioPagina from './modulos/inicio/InicioPagina'
+import SolicitudesPagina from './modulos/solicitudes/SolicitudesPagina'
+import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
+import NuevaSolicitudPagina from './modulos/solicitudes/NuevaSolicitudPagina'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
 
 export default function App() {
@@ -15,6 +18,32 @@ export default function App() {
       <Route element={<RutaProtegida />}>
         <Route element={<Layout />}>
           <Route path="/" element={<InicioPagina />} />
+
+          <Route
+            path="/solicitudes"
+            element={
+              <RutaProtegida permisos={['solicitudes.ver']}>
+                <SolicitudesPagina />
+              </RutaProtegida>
+            }
+          />
+          <Route
+            path="/solicitudes/nueva"
+            element={
+              <RutaProtegida permisos={['solicitudes.crear']}>
+                <NuevaSolicitudPagina />
+              </RutaProtegida>
+            }
+          />
+          <Route
+            path="/solicitudes/:id"
+            element={
+              <RutaProtegida permisos={['solicitudes.ver']}>
+                <SolicitudDetallePagina />
+              </RutaProtegida>
+            }
+          />
+
           <Route path="*" element={<PaginaNoEncontrada />} />
         </Route>
       </Route>

@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function RutaProtegida({ permisos, children }: Props) {
-  const { perfil, cargando } = useSesion()
+  const { perfil, cargando, salidaVoluntaria } = useSesion()
   const ubicacion = useLocation()
 
   // Mientras se pregunta a /auth/me si hay sesión
@@ -27,9 +27,11 @@ export default function RutaProtegida({ permisos, children }: Props) {
     )
   }
 
-  // Sin sesión: al login, recordando a dónde quería ir
+  // Sin sesión: al login. Solo se recuerda la página si la sesión expiró o nunca hubo sesión;
+  // si el usuario cerró sesión a propósito, el siguiente entra al Inicio (cambio de turno en garita)
   if (!perfil) {
-    return <Navigate to="/login" replace state={{ desde: ubicacion.pathname + ubicacion.search }} />
+    const estado = salidaVoluntaria ? undefined : { desde: ubicacion.pathname + ubicacion.search }
+    return <Navigate to="/login" replace state={estado} />
   }
 
   // Con sesión pero sin el permiso requerido

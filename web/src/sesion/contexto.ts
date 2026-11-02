@@ -22,6 +22,11 @@ export interface ValorSesion {
   perfil: Perfil | null
   /** true mientras se consulta /auth/me al abrir la aplicación */
   cargando: boolean
+  /**
+   * true si el usuario cerró sesión a propósito (botón "Cerrar sesión").
+   * En ese caso el siguiente inicio de sesión va al Inicio, no a la última página visitada.
+   */
+  salidaVoluntaria: boolean
   iniciarSesion: (email: string, password: string) => Promise<Perfil>
   cerrarSesion: () => Promise<void>
   recargarPerfil: () => Promise<void>
