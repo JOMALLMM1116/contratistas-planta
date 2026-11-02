@@ -1,0 +1,81 @@
+// =============================================================
+// Tema de Control Planta (Web y PWA)
+// Paleta "Industrial Enterprise" aplicada a Bootstrap 5.3.
+// Bootstrap genera botones, alertas, badges y formularios a partir
+// de estas variables, por eso se definen ANTES de importarlo.
+// =============================================================
+
+// ---------- 1. Paleta ----------
+$primary: #315b70; // Azul industrial: acciones principales
+$secondary: #247d83; // Teal: acento secundario
+$success: #23865b; // Aprobado, activo, válido
+$info: #5277a5; // Pendiente, emitido, informativo
+$warning: #d49a36; // Próximo a vencer, en revisión
+$danger: #c64c4c; // Rechazado, vencido, revocado, bloqueado
+$light: #eaf0f2;
+$dark: #142b3a;
+
+// ---------- 2. Fondo, texto y bordes ----------
+$body-bg: #f3f5f6;
+$body-color: #172b36;
+$border-color: #dce4e8;
+$secondary-color: #637580; // Texto auxiliar (.text-body-secondary)
+
+// ---------- 3. Tipografía ----------
+$font-family-sans-serif: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+$font-size-base: 0.875rem; // 14 px
+$headings-font-weight: 600;
+
+// ---------- 4. Bordes y sombras ----------
+$border-radius: 0.625rem; // 10 px: botones y tarjetas
+$border-radius-sm: 0.4375rem; // 7 px
+$border-radius-lg: 0.75rem; // 12 px: modales
+$input-border-radius: 0.4375rem; // 7 px: campos de formulario
+$input-padding-y: 0.6rem; // Campos de ~42 px de alto
+$btn-padding-y: 0.5rem;
+
+$box-shadow-sm: 0 1px 2px rgba(20, 43, 58, 0.06);
+$box-shadow: 0 2px 8px rgba(20, 43, 58, 0.08);
+
+// ---------- 5. Bootstrap completo ----------
+@import 'bootstrap/scss/bootstrap';
+
+// ---------- 6. Variables propias (lo que Bootstrap no cubre) ----------
+:root {
+  --cp-barra-lateral: #142b3a;
+  --cp-barra-lateral-hover: #1d3d50;
+  --cp-barra-lateral-activo: #315b70;
+  --cp-barra-lateral-texto: #d9e5e9;
+  --cp-superficie-suave: #eaf0f2;
+  --cp-ancho-barra: 248px;
+}
+
+// ---------- 7. Ajustes generales ----------
+
+// Números del mismo ancho: fechas, códigos y cantidades se alinean en tablas
+.numeros-tabulares,
+table td {
+  font-variant-numeric: tabular-nums;
+}
+
+// Foco visible al navegar con teclado (accesibilidad)
+:focus-visible {
+  outline: 2px solid $primary;
+  outline-offset: 2px;
+}
+
+// Encabezados de tabla en el tono suave del tema
+.table > thead th {
+  background-color: var(--cp-superficie-suave);
+  color: $secondary-color;
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+// Respetar a quien pide menos animaciones en su sistema
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
