@@ -21,7 +21,15 @@ FROM base AS prod-deps
 COPY server/package.json server/package-lock.json ./
 RUN npm ci --omit=dev
 
-# ---- 4. Imagen final ----
+# ---- 4. Aplicacion Web (React + Vite) a web/dist ----
+FROM node:24-bookworm-slim AS web-build
+WORKDIR /app/web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+COPY web/ ./
+RUN npm run build
+
+# ---- 5. Imagen final ----
 FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     PORT=3000 \
@@ -31,6 +39,9 @@ WORKDIR /app/server
 COPY --from=prod-deps /app/server/node_modules ./node_modules
 COPY --from=build /app/server/dist ./dist
 COPY server/package.json ./
+
+# Web compilada: Express la sirve desde /app/web/dist
+COPY --from=web-build /app/web/dist /app/web/dist
 
 # Carpeta de documentos (en produccion se monta un volumen aqui)
 RUN mkdir -p /app/uploads && chown -R node:node /app/uploads

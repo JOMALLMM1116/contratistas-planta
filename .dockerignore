@@ -2,6 +2,7 @@
 **/node_modules
 server/dist
 server/src/generated
+web/dist
 
 # Secretos y datos locales
 .env
