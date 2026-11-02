@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Card, Col, Form, InputGroup, Row, Table } from 'react-bootstrap'
-import { Search, X } from 'lucide-react'
+import { Plus, Search, X } from 'lucide-react'
 import EncabezadoPagina from '../../componentes/EncabezadoPagina'
 import EstadoBadge from '../../componentes/EstadoBadge'
 import Paginacion from '../../componentes/Paginacion'
 import { Cargando, ErrorCarga, SinDatos } from '../../componentes/EstadosPantalla'
+import { useSesion } from '../../sesion/contexto'
+import { tienePermiso } from '../../sesion/permisos'
 import { infoEstado } from '../../utilidades/estados'
 import { formatearDia } from '../../utilidades/fechas'
 import { useSolicitudes } from './solicitudes.api'
@@ -13,6 +15,8 @@ import { ESTADOS_SOLICITUD } from './tipos'
 
 export default function SolicitudesPagina() {
   const navegar = useNavigate()
+  const { perfil } = useSesion()
+  const puedeCrear = !!perfil?.rol.es_interno && tienePermiso(perfil, 'solicitudes.crear')
 
   // Los filtros viven en la URL: se pueden compartir, y "atrás" del navegador los conserva
   const [params, setParams] = useSearchParams()
@@ -48,7 +52,17 @@ export default function SolicitudesPagina() {
 
   return (
     <>
-      <EncabezadoPagina titulo="Solicitudes de acceso" descripcion="Solicitudes de contratistas para ingresar a la planta." />
+      <EncabezadoPagina
+        titulo="Solicitudes de acceso"
+        descripcion="Solicitudes de contratistas para ingresar a la planta."
+        acciones={
+          puedeCrear && (
+            <Link to="/solicitudes/nueva" className="btn btn-primary d-inline-flex align-items-center gap-2">
+              <Plus size={18} /> Nueva solicitud
+            </Link>
+          )
+        }
+      />
 
       <Card className="shadow-sm">
         {/* Filtros */}
