@@ -1,4 +1,4 @@
-import { hoyGuatemala } from '../../utilidades/fechas'
+import { hoyGuatemala } from './fechas'
 
 /** Días de anticipación con los que se avisa que un documento está por vencer (solo para mostrar) */
 export const DIAS_AVISO = 30

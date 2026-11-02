@@ -4,6 +4,7 @@ import Layout from './layout/Layout'
 import LoginPagina from './modulos/auth/LoginPagina'
 import InicioPagina from './modulos/inicio/InicioPagina'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
+import CapacitacionesPagina from './modulos/capacitaciones/CapacitacionesPagina'
 import DocumentosPagina from './modulos/documentos/DocumentosPagina'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<InicioPagina />} />
           <Route path="/documentos" element={<RutaProtegida permisos={['documentos.revisar']}><DocumentosPagina /></RutaProtegida>} />
+          <Route path="/capacitaciones" element={<RutaProtegida permisos={['documentos.revisar']}><CapacitacionesPagina /></RutaProtegida>} />
           <Route path="*" element={<PaginaNoEncontrada />} />
         </Route>
       </Route>

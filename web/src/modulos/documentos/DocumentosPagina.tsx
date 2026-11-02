@@ -11,7 +11,7 @@ import EstadoBadge from '../../componentes/EstadoBadge'
 import Paginacion from '../../componentes/Paginacion'
 import { formatearFecha, formatearFechaHora } from '../../utilidades/fechas'
 import type { Documento, TipoDocumentoOpcion } from './tipos'
-import { DIAS_AVISO, diasParaVencer, soloFecha } from './vencimiento'
+import { DIAS_AVISO, diasParaVencer, soloFecha } from '../../utilidades/vencimiento'
 
 const POR_PAGINA = 20
 const RUTA = '/documentos'
@@ -354,30 +354,37 @@ export default function DocumentosPagina() {
                 return (
                   <tr key={d.id}>
                     <td>
-                      <div className="fw-semibold">{d.tipos_documento.nombre}</div>
-                      <small className="text-body-secondary numeros-tabulares">{d.numero ? `N.º ${d.numero}` : 'Sin número'}</small>
+                      {/* Celular: todo apilado. Tablet (md): datos a la izquierda; estado y acciones a la derecha.
+                          Escritorio (lg): solo el nombre, el resto va en sus columnas */}
+                      <Row className="g-2">
+                        <Col xs={12} md={6} lg={12}>
+                          <div className="fw-semibold">{d.tipos_documento.nombre}</div>
+                          <small className="text-body-secondary numeros-tabulares">{d.numero ? `N.º ${d.numero}` : 'Sin número'}</small>
 
-                      {/* Celular y tablet: todo apilado bajo el nombre */}
-                      <div className="d-lg-none mt-2 d-flex flex-column gap-2">
-                        <div>
-                          <div>{titular.nombre}</div>
-                          <small className="text-body-secondary">
-                            {titular.tipo}
-                            {titular.detalle ? ` · ${titular.detalle}` : ''}
-                          </small>
-                        </div>
-                        <Vencimiento fecha={d.fecha_vencimiento} />
-                        <div>
-                          <EstadoRevision documento={d} />
-                        </div>
-                        <AccionesDocumento
-                          documento={d}
-                          conTexto
-                          descargando={descarga.isPending}
-                          alDescargar={alDescargar}
-                          alRevisar={alRevisar}
-                        />
-                      </div>
+                          <div className="d-lg-none mt-2 d-flex flex-column gap-2">
+                            <div>
+                              <div>{titular.nombre}</div>
+                              <small className="text-body-secondary">
+                                {titular.tipo}
+                                {titular.detalle ? ` · ${titular.detalle}` : ''}
+                              </small>
+                            </div>
+                            <Vencimiento fecha={d.fecha_vencimiento} />
+                          </div>
+                        </Col>
+                        <Col xs={12} md={6} className="d-lg-none d-flex flex-column gap-2">
+                          <div>
+                            <EstadoRevision documento={d} />
+                          </div>
+                          <AccionesDocumento
+                            documento={d}
+                            conTexto
+                            descargando={descarga.isPending}
+                            alDescargar={alDescargar}
+                            alRevisar={alRevisar}
+                          />
+                        </Col>
+                      </Row>
                     </td>
                     <td className="d-none d-lg-table-cell">
                       <div>{titular.nombre}</div>
