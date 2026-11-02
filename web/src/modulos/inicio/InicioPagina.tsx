@@ -1,5 +1,6 @@
 import { Badge, Card } from 'react-bootstrap'
 import { useSesion } from '../../sesion/contexto'
+import EncabezadoPagina from '../../componentes/EncabezadoPagina'
 
 // Página temporal: luego será el dashboard con datos de /api/reportes/dashboard
 export default function InicioPagina() {
@@ -8,8 +9,7 @@ export default function InicioPagina() {
 
   return (
     <>
-      <h1 className="h3 mb-1">Hola, {perfil.nombre_completo}</h1>
-      <p className="text-body-secondary mb-4">{perfil.rol.nombre}</p>
+      <EncabezadoPagina titulo={`Hola, ${perfil.nombre_completo}`} descripcion={perfil.rol.nombre} />
 
       <Card className="shadow-sm">
         <Card.Body>
