@@ -15,18 +15,24 @@ $danger: #c64c4c; // Rechazado, vencido, revocado, bloqueado
 $light: #eaf0f2;
 $dark: #142b3a;
 
-// ---------- 2. Fondo, texto y bordes ----------
+// ---------- 2. Tema claro: fondo, texto y bordes ----------
 $body-bg: #f3f5f6;
 $body-color: #172b36;
 $border-color: #dce4e8;
-$secondary-color: #637580; // Texto auxiliar (.text-body-secondary)
+$body-secondary-color: #637580; // Texto auxiliar (.text-body-secondary)
 
-// ---------- 3. Tipografía ----------
+// ---------- 3. Tema oscuro (data-bs-theme="dark") ----------
+$body-bg-dark: #101b23;
+$body-color-dark: #e9f0f3;
+$border-color-dark: #30444f;
+$body-secondary-color-dark: #a3b4bd;
+
+// ---------- 4. Tipografía ----------
 $font-family-sans-serif: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 $font-size-base: 0.875rem; // 14 px
 $headings-font-weight: 600;
 
-// ---------- 4. Bordes y sombras ----------
+// ---------- 5. Bordes y sombras ----------
 $border-radius: 0.625rem; // 10 px: botones y tarjetas
 $border-radius-sm: 0.4375rem; // 7 px
 $border-radius-lg: 0.75rem; // 12 px: modales
@@ -37,20 +43,40 @@ $btn-padding-y: 0.5rem;
 $box-shadow-sm: 0 1px 2px rgba(20, 43, 58, 0.06);
 $box-shadow: 0 2px 8px rgba(20, 43, 58, 0.08);
 
-// ---------- 5. Bootstrap completo ----------
+// ---------- 6. Bootstrap completo ----------
 @import 'bootstrap/scss/bootstrap';
 
-// ---------- 6. Variables propias (lo que Bootstrap no cubre) ----------
-:root {
+// ---------- 7. Variables propias (lo que Bootstrap no cubre) ----------
+:root,
+[data-bs-theme='light'] {
+  --cp-superficie: #ffffff;
+  --cp-superficie-suave: #eaf0f2;
   --cp-barra-lateral: #142b3a;
   --cp-barra-lateral-hover: #1d3d50;
   --cp-barra-lateral-activo: #315b70;
   --cp-barra-lateral-texto: #d9e5e9;
-  --cp-superficie-suave: #eaf0f2;
+  --cp-panel-marca: #142b3a; // Panel azul del login
+  --cp-sombra-tarjeta: 0 10px 30px rgba(20, 43, 58, 0.08), 0 2px 6px rgba(20, 43, 58, 0.05);
   --cp-ancho-barra: 248px;
 }
 
-// ---------- 7. Ajustes generales ----------
+[data-bs-theme='dark'] {
+  --cp-superficie: #182832;
+  --cp-superficie-suave: #203541;
+  --cp-barra-lateral: #0d1921;
+  --cp-barra-lateral-hover: #182832;
+  --cp-barra-lateral-activo: #1d3d50;
+  --cp-barra-lateral-texto: #c4d3da;
+  --cp-panel-marca: #1d3d50; // Más claro que el fondo oscuro para que contraste
+  --cp-sombra-tarjeta: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+// ---------- 8. Ajustes generales ----------
+
+// Las tarjetas usan la superficie del tema (blanca en claro, azul grisáceo en oscuro)
+.card {
+  --bs-card-bg: var(--cp-superficie);
+}
 
 // Números del mismo ancho: fechas, códigos y cantidades se alinean en tablas
 .numeros-tabulares,
@@ -58,16 +84,16 @@ table td {
   font-variant-numeric: tabular-nums;
 }
 
-// Foco visible al navegar con teclado (accesibilidad)
+// Foco visible al navegar con teclado (se adapta al tema)
 :focus-visible {
-  outline: 2px solid $primary;
+  outline: 2px solid var(--bs-primary-text-emphasis);
   outline-offset: 2px;
 }
 
 // Encabezados de tabla en el tono suave del tema
 .table > thead th {
   background-color: var(--cp-superficie-suave);
-  color: $secondary-color;
+  color: var(--bs-secondary-color);
   font-weight: 600;
   font-size: 0.8125rem;
 }
