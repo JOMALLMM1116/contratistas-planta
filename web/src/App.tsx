@@ -6,6 +6,7 @@ import InicioPagina from './modulos/inicio/InicioPagina'
 import SolicitudesPagina from './modulos/solicitudes/SolicitudesPagina'
 import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
 import NuevaSolicitudPagina from './modulos/solicitudes/NuevaSolicitudPagina'
+import AuditoriaPagina from './modulos/auditoria/AuditoriaPagina'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<InicioPagina />} />
 
+          {/* Solicitudes (Manuel) */}
           <Route
             path="/solicitudes"
             element={
@@ -40,6 +42,16 @@ export default function App() {
             element={
               <RutaProtegida permisos={['solicitudes.ver']}>
                 <SolicitudDetallePagina />
+              </RutaProtegida>
+            }
+          />
+
+          {/* Auditoría (Anthony) */}
+          <Route
+            path="/auditoria"
+            element={
+              <RutaProtegida permisos={['auditoria.ver']}>
+                <AuditoriaPagina />
               </RutaProtegida>
             }
           />
