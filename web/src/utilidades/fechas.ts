@@ -19,13 +19,24 @@ const formatoFechaHora = new Intl.DateTimeFormat('es-GT', {
 })
 
 const SOLO_FECHA = /^(\d{4})-(\d{2})-(\d{2})$/
+const INICIO_FECHA = /^(\d{4})-(\d{2})-(\d{2})/
 
-/** 2026-11-02 o un timestamp → 02/11/2026 */
+/**
+ * Columnas DATE del backend (fecha_inicio, fecha_fin, fecha_vencimiento...).
+ * Prisma las envía como "2026-11-01T00:00:00.000Z": se toma solo AAAA-MM-DD,
+ * SIN convertir de zona horaria (si se convirtiera, en Guatemala saldría el día anterior).
+ */
+export function formatearDia(valor?: string | null): string {
+  if (!valor) return '—'
+  const partes = INICIO_FECHA.exec(valor)
+  return partes ? `${partes[3]}/${partes[2]}/${partes[1]}` : '—'
+}
+
+/** Momento exacto (timestamp) → 02/11/2026, en hora de Guatemala */
 export function formatearFecha(valor?: string | Date | null): string {
   if (!valor) return '—'
 
-  // Una fecha sin hora ("2026-11-02") se muestra tal cual. Si se convirtiera con
-  // new Date(), JavaScript la toma como medianoche UTC y en Guatemala saldría el día anterior.
+  // Una fecha sin hora ("2026-11-02") se muestra tal cual
   if (typeof valor === 'string') {
     const partes = SOLO_FECHA.exec(valor)
     if (partes) return `${partes[3]}/${partes[2]}/${partes[1]}`
@@ -35,7 +46,7 @@ export function formatearFecha(valor?: string | Date | null): string {
   return Number.isNaN(fecha.getTime()) ? '—' : formatoFecha.format(fecha)
 }
 
-/** Timestamp → 02/11/2026 14:35 */
+/** Momento exacto (timestamp) → 02/11/2026 14:35, en hora de Guatemala */
 export function formatearFechaHora(valor?: string | Date | null): string {
   if (!valor) return '—'
   const fecha = valor instanceof Date ? valor : new Date(valor)
