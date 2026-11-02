@@ -78,6 +78,13 @@ $box-shadow: 0 2px 8px rgba(20, 43, 58, 0.08);
   --bs-card-bg: var(--cp-superficie);
 }
 
+// En oscuro, el azul primario casi no se distingue del fondo: los botones de
+// contorno azul usan la versión clara del mismo azul (texto y borde)
+[data-bs-theme='dark'] .btn-outline-primary {
+  --bs-btn-color: var(--bs-primary-text-emphasis);
+  --bs-btn-border-color: var(--bs-primary-text-emphasis);
+}
+
 // Números del mismo ancho: fechas, códigos y cantidades se alinean en tablas
 .numeros-tabulares,
 table td {

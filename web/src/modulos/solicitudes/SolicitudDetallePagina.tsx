@@ -11,6 +11,7 @@ import { tienePermiso } from '../../sesion/permisos'
 import { formatearDia, formatearFechaHora } from '../../utilidades/fechas'
 import { useAccionesSolicitud, useRequisitos, useSolicitud } from './solicitudes.api'
 import ModalEvaluacion from './ModalEvaluacion'
+import AvisoTipoTrabajo from './AvisoTipoTrabajo'
 
 type Accion = 'enviar' | 'evaluar' | 'aprobar' | 'rechazar' | 'cancelar'
 
@@ -139,7 +140,7 @@ export default function SolicitudDetallePagina() {
       )}
 
       <Row className="g-3">
-        {/* Columna principal */}
+        {/* Columna principal (la última tarjeta sin margen: el espacio lo da la fila) */}
         <Col lg={8}>
           <Card className="shadow-sm mb-3">
             <Card.Body>
@@ -152,21 +153,7 @@ export default function SolicitudDetallePagina() {
                   </Dato>
                 </Col>
                 <Col sm={6}>
-                  <Dato etiqueta="Tipo de trabajo">
-                    {s.tipos_trabajo.nombre}
-                    <div className="d-flex flex-wrap gap-1 mt-1">
-                      {s.tipos_trabajo.requiere_permiso_trabajo && (
-                        <Badge bg="info-subtle" text="info-emphasis">
-                          Requiere permiso de trabajo
-                        </Badge>
-                      )}
-                      {s.tipos_trabajo.requiere_evaluacion_riesgo && (
-                        <Badge bg="warning-subtle" text="warning-emphasis">
-                          Requiere evaluación de riesgo
-                        </Badge>
-                      )}
-                    </div>
-                  </Dato>
+                  <Dato etiqueta="Tipo de trabajo">{s.tipos_trabajo.nombre}</Dato>
                 </Col>
                 <Col sm={6}>
                   <Dato etiqueta="Vigencia">
@@ -184,6 +171,14 @@ export default function SolicitudDetallePagina() {
                 <Col sm={6}>
                   <Dato etiqueta="Creada">{formatearFechaHora(s.created_at)}</Dato>
                 </Col>
+                {(s.tipos_trabajo.requiere_evaluacion_riesgo || s.tipos_trabajo.requiere_permiso_trabajo) && (
+                  <Col xs={12}>
+                    <AvisoTipoTrabajo
+                      requiereEvaluacion={s.tipos_trabajo.requiere_evaluacion_riesgo}
+                      requierePermiso={s.tipos_trabajo.requiere_permiso_trabajo}
+                    />
+                  </Col>
+                )}
               </Row>
             </Card.Body>
           </Card>
@@ -239,7 +234,7 @@ export default function SolicitudDetallePagina() {
             )}
           </Card>
 
-          <Card className="shadow-sm mb-3">
+          <Card className="shadow-sm">
             <Card.Body>
               <h2 className="h6 mb-3">Evaluaciones de riesgo</h2>
               {s.evaluaciones_riesgo.length === 0 ? (
@@ -279,7 +274,7 @@ export default function SolicitudDetallePagina() {
           </Card>
         </Col>
 
-        {/* Columna lateral */}
+        {/* Columna lateral (la última tarjeta sin margen: el espacio lo da la fila) */}
         <Col lg={4}>
           <Card className="shadow-sm mb-3">
             <Card.Body>
@@ -320,7 +315,7 @@ export default function SolicitudDetallePagina() {
             </Card.Body>
           </Card>
 
-          <Card className="shadow-sm mb-3">
+          <Card className="shadow-sm">
             <Card.Body>
               <h2 className="h6 mb-3">Autorizaciones</h2>
               {s.autorizaciones.length === 0 ? (

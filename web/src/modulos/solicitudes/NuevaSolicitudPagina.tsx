@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Alert, Badge, Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap'
+import { Alert, Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap'
 import { ArrowLeft, Save } from 'lucide-react'
 import EncabezadoPagina from '../../componentes/EncabezadoPagina'
 import { Cargando, ErrorCarga } from '../../componentes/EstadosPantalla'
 import { ErrorApi } from '../../api/cliente'
 import { useSesion } from '../../sesion/contexto'
 import { hoyGuatemala } from '../../utilidades/fechas'
+import AvisoTipoTrabajo from './AvisoTipoTrabajo'
 import {
   useContratistasDeEmpresa,
   useCrearSolicitud,
@@ -211,22 +212,17 @@ export default function NuevaSolicitudPagina() {
                     ))}
                   </Form.Select>
                   <Form.Control.Feedback type="invalid">{errors.tipo_trabajo_id?.message}</Form.Control.Feedback>
-                  {tipoElegido && (tipoElegido.requiere_evaluacion_riesgo || tipoElegido.requiere_permiso_trabajo) && (
-                    <div className="d-flex flex-wrap gap-1 mt-2">
-                      {tipoElegido.requiere_evaluacion_riesgo && (
-                        <Badge bg="warning-subtle" text="warning-emphasis">
-                          Requiere evaluación de riesgo
-                        </Badge>
-                      )}
-                      {tipoElegido.requiere_permiso_trabajo && (
-                        <Badge bg="info-subtle" text="info-emphasis">
-                          Requiere permiso de trabajo
-                        </Badge>
-                      )}
-                    </div>
-                  )}
                 </Form.Group>
               </Col>
+
+              {tipoElegido && (
+                <Col xs={12}>
+                  <AvisoTipoTrabajo
+                    requiereEvaluacion={tipoElegido.requiere_evaluacion_riesgo}
+                    requierePermiso={tipoElegido.requiere_permiso_trabajo}
+                  />
+                </Col>
+              )}
 
               <Col md={6}>
                 <div className="small text-body-secondary">Responsable interno</div>
