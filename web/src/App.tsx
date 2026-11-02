@@ -4,6 +4,7 @@ import Layout from './layout/Layout'
 import LoginPagina from './modulos/auth/LoginPagina'
 import InicioPagina from './modulos/inicio/InicioPagina'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
+import UsuariosPagina from './modulos/usuarios/UsuariosPagina'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <Route element={<RutaProtegida />}>
         <Route element={<Layout />}>
           <Route path="/" element={<InicioPagina />} />
+          <Route path="/usuarios" element={<RutaProtegida permisos={['usuarios.gestionar']}><UsuariosPagina /></RutaProtegida>} />
           <Route path="*" element={<PaginaNoEncontrada />} />
         </Route>
       </Route>
