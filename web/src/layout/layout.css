@@ -1,0 +1,132 @@
+/* ===== Estructura general ===== */
+.layout {
+  display: flex;
+  min-height: 100dvh;
+}
+
+.layout__principal {
+  flex: 1;
+  min-width: 0; /* evita que tablas anchas rompan el diseño */
+  display: flex;
+  flex-direction: column;
+}
+
+.layout__contenido {
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: 1.5rem;
+}
+
+@media (max-width: 575.98px) {
+  .layout__contenido {
+    padding: 1rem;
+  }
+}
+
+/* ===== Barra lateral ===== */
+.layout__offcanvas {
+  --bs-offcanvas-width: 280px;
+  --bs-offcanvas-bg: var(--cp-barra-lateral);
+  color: var(--cp-barra-lateral-texto);
+}
+
+@media (min-width: 992px) {
+  .layout__barra {
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+    width: var(--cp-ancho-barra);
+    height: 100dvh;
+    overflow-y: auto;
+    background-color: var(--cp-barra-lateral);
+  }
+
+  .layout__offcanvas .offcanvas-body {
+    flex-grow: 1;
+  }
+}
+
+.barra {
+  width: 100%;
+  padding: 1.25rem 0.75rem;
+}
+
+.barra__marca {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem 1.25rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.barra__grupo + .barra__grupo {
+  margin-top: 1rem;
+}
+
+.barra__titulo {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(217, 229, 233, 0.55);
+}
+
+.barra__enlace {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--bs-border-radius-sm);
+  color: var(--cp-barra-lateral-texto);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.barra__enlace:hover {
+  background-color: var(--cp-barra-lateral-hover);
+  color: #fff;
+}
+
+/* Opción activa: fondo más claro y la línea amarilla de la franja de seguridad */
+.barra__enlace.activo {
+  background-color: var(--cp-barra-lateral-activo);
+  color: #fff;
+  box-shadow: inset 3px 0 0 #d49a36;
+}
+
+/* ===== Encabezado ===== */
+.encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 60px;
+  padding: 0.625rem 1.5rem;
+  background-color: var(--cp-superficie);
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.encabezado__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.encabezado__usuario {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 575.98px) {
+  .encabezado {
+    padding: 0.5rem 1rem;
+  }
+}
