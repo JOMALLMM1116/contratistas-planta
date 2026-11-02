@@ -1,6 +1,9 @@
 import './shared/config/zod.js';
 import { randomUUID } from 'node:crypto';
-import express from 'express';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import express, { type Express } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -9,6 +12,10 @@ import { logger } from './shared/logger.js';
 import { corsOrigins } from './shared/config/env.js';
 import { apiRouter } from './routes.js';
 import { errorHandler, notFound } from './shared/middlewares/error-handler.js';
+
+// Build de la Web (web/dist). La ruta relativa es la misma en desarrollo
+// (server/src/app.ts) y en la imagen Docker (/app/server/dist/app.js).
+const DIRECTORIO_WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../web/dist');
 
 export function crearApp() {
   const app = express();
@@ -37,8 +44,10 @@ export function crearApp() {
         if (res.statusCode >= 400) return 'warn';
         return 'info';
       },
-      // El health check se consulta seguido (Docker, monitoreo): no ensuciar el log
-      autoLogging: { ignore: (req) => req.url === '/api/health' },
+      // No ensuciar el log: health check (Docker, monitoreo) y archivos estaticos de la Web
+      autoLogging: {
+        ignore: (req) => req.url === '/api/health' || (req.url?.startsWith('/assets/') ?? false),
+      },
     }),
   );
 
@@ -50,9 +59,43 @@ export function crearApp() {
   app.use('/api', apiRouter);
   app.use('/api', notFound);
 
-  // Mas adelante aqui se sirven los builds de la Web (/) y la PWA (/pwa)
+  // Aplicacion Web en / (la PWA ira en /pwa)
+  servirWeb(app);
 
   app.use(errorHandler);
 
   return app;
+}
+
+function servirWeb(app: Express) {
+  const indexHtml = path.join(DIRECTORIO_WEB, 'index.html');
+
+  // Sin build (por ejemplo, en desarrollo sin haber corrido "npm --prefix web run build")
+  if (!existsSync(indexHtml)) {
+    logger.warn({ directorio: DIRECTORIO_WEB }, 'No se encontro el build de la Web: solo se sirve la API');
+    return;
+  }
+
+  // Archivos compilados. Los de /assets llevan un hash en el nombre: se pueden guardar un año en cache
+  app.use(
+    express.static(DIRECTORIO_WEB, {
+      index: false,
+      setHeaders: (res, rutaArchivo) => {
+        if (rutaArchivo.includes(`${path.sep}assets${path.sep}`)) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        }
+      },
+    }),
+  );
+
+  // Rutas de React (/login, /solicitudes, ...): siempre index.html y React Router decide la pantalla.
+  // index.html sin cache para que cada despliegue se vea de inmediato.
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    if (req.path.startsWith('/assets/')) return next(); // un archivo que no existe no debe devolver HTML
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendFile(indexHtml);
+  });
+
+  logger.info({ directorio: DIRECTORIO_WEB }, 'Aplicacion Web servida en /');
 }
