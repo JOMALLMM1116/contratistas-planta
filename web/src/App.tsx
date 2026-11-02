@@ -4,6 +4,7 @@ import Layout from './layout/Layout'
 import LoginPagina from './modulos/auth/LoginPagina'
 import InicioPagina from './modulos/inicio/InicioPagina'
 import SolicitudesPagina from './modulos/solicitudes/SolicitudesPagina'
+import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
 
 export default function App() {
@@ -22,6 +23,14 @@ export default function App() {
             element={
               <RutaProtegida permisos={['solicitudes.ver']}>
                 <SolicitudesPagina />
+              </RutaProtegida>
+            }
+          />
+          <Route
+            path="/solicitudes/:id"
+            element={
+              <RutaProtegida permisos={['solicitudes.ver']}>
+                <SolicitudDetallePagina />
               </RutaProtegida>
             }
           />
