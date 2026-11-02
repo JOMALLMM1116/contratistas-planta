@@ -6,6 +6,7 @@ import InicioPagina from './modulos/inicio/InicioPagina'
 import SolicitudesPagina from './modulos/solicitudes/SolicitudesPagina'
 import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
 import NuevaSolicitudPagina from './modulos/solicitudes/NuevaSolicitudPagina'
+import EmpresasPagina from './modulos/empresas/EmpresasPagina'
 import AuditoriaPagina from './modulos/auditoria/AuditoriaPagina'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
 
@@ -42,6 +43,16 @@ export default function App() {
             element={
               <RutaProtegida permisos={['solicitudes.ver']}>
                 <SolicitudDetallePagina />
+              </RutaProtegida>
+            }
+          />
+
+          {/* Empresas (Anthony) */}
+          <Route
+            path="/empresas"
+            element={
+              <RutaProtegida permisos={['empresas.gestionar']}>
+                <EmpresasPagina />
               </RutaProtegida>
             }
           />
