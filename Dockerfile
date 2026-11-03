@@ -29,7 +29,15 @@ RUN npm ci
 COPY web/ ./
 RUN npm run build
 
-# ---- 5. Imagen final ----
+# ---- 5. PWA (React + Vite + vite-plugin-pwa) a pwa/dist ----
+FROM node:24-bookworm-slim AS pwa-build
+WORKDIR /app/pwa
+COPY pwa/package.json pwa/package-lock.json ./
+RUN npm ci
+COPY pwa/ ./
+RUN npm run build
+
+# ---- 6. Imagen final ----
 FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     PORT=3000 \
@@ -40,8 +48,9 @@ COPY --from=prod-deps /app/server/node_modules ./node_modules
 COPY --from=build /app/server/dist ./dist
 COPY server/package.json ./
 
-# Web compilada: Express la sirve desde /app/web/dist
+# Web y PWA compiladas: Express las sirve desde /app/web/dist (en /) y /app/pwa/dist (en /pwa)
 COPY --from=web-build /app/web/dist /app/web/dist
+COPY --from=pwa-build /app/pwa/dist /app/pwa/dist
 
 # Carpeta de documentos (en produccion se monta un volumen aqui)
 RUN mkdir -p /app/uploads && chown -R node:node /app/uploads

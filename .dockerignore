@@ -3,6 +3,7 @@
 server/dist
 server/src/generated
 web/dist
+pwa/dist
 
 # Secretos y datos locales
 .env
