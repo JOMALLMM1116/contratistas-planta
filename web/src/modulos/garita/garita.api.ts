@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ErrorApi } from '../../api/cliente'
 import type { RespuestaDatos, RespuestaPaginada } from '../../api/tipos'
-import type { Identificador, RespuestaEntrada, RespuestaValidacion, ZonaGarita } from './tipos'
+import type { Identificador, Movimiento, PersonaDentro, RespuestaEntrada, RespuestaValidacion, ZonaGarita } from './tipos'
 
 const CODIGO_CORTO = /^[A-Za-z0-9]{8}$/
 
@@ -62,5 +62,46 @@ export function useEntrada() {
       void queryClient.invalidateQueries({ queryKey: ['garita'] })
       void queryClient.invalidateQueries({ queryKey: ['credenciales'] })
     },
+  })
+}
+
+/** Personas dentro de la planta; se actualiza sola cada 30 segundos */
+export function useDentro(zonaId: number | null) {
+  return useQuery({
+    queryKey: ['garita', 'dentro', zonaId],
+    queryFn: () =>
+      api
+        .get<{ datos: PersonaDentro[]; meta: { total: number } }>('/garita/dentro', { zona_id: zonaId ?? undefined })
+        .then((r) => r.datos),
+    refetchInterval: 30_000,
+  })
+}
+
+/** Registra la salida (no exige credencial válida: nadie debe quedar sin poder salir) */
+export function useSalida() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (datos: { contratista_id: string; observaciones?: string }) => api.post('/garita/salida', datos),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['garita'] }),
+  })
+}
+
+export interface FiltrosMovimientos {
+  pagina: number
+  desde?: string
+  hasta?: string
+}
+
+export function useMovimientos(filtros: FiltrosMovimientos) {
+  return useQuery({
+    queryKey: ['garita', 'movimientos', filtros],
+    queryFn: () =>
+      api.get<RespuestaPaginada<Movimiento>>('/garita/movimientos', {
+        pagina: filtros.pagina,
+        por_pagina: 20,
+        desde: filtros.desde,
+        hasta: filtros.hasta,
+      }),
+    placeholderData: keepPreviousData,
   })
 }

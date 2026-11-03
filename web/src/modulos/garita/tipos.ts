@@ -51,3 +51,36 @@ export interface ZonaGarita {
   nivel_riesgo: number
   activa: boolean
 }
+
+/** Elemento de GET /garita/dentro */
+export interface PersonaDentro {
+  contratista_id: string
+  nombres: string
+  apellidos: string
+  documento_identidad: string
+  empresa: string
+  zona_id: number
+  zona_codigo: string
+  zona_nombre: string
+  solicitud: string
+  credencial: string
+  ingreso_en: string
+  minutos_dentro: number
+}
+
+/** Elemento de GET /garita/movimientos */
+export interface Movimiento {
+  id: string
+  tipo: string
+  fecha_hora: string
+  observaciones: string | null
+  contratista_id: string
+  nombres: string
+  apellidos: string
+  empresa_id: string
+  empresa: string
+  zona: string
+  solicitud: string
+  credencial: string
+  registrado_por: string
+}

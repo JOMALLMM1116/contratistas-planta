@@ -1,17 +1,18 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import RutaProtegida from './sesion/RutaProtegida'
 import Layout from './layout/Layout'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
+import { Cargando } from './componentes/EstadosPantalla'
 
 // Generales
 import LoginPagina from './modulos/auth/LoginPagina'
 import InicioPagina from './modulos/inicio/InicioPagina'
 
-// Operación y garita (Manuel)
+// Operación (Manuel)
 import SolicitudesPagina from './modulos/solicitudes/SolicitudesPagina'
 import NuevaSolicitudPagina from './modulos/solicitudes/NuevaSolicitudPagina'
 import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
-import GaritaPagina from './modulos/garita/GaritaPagina'
 
 // Personal, cumplimiento, seguridad y administración (Anthony)
 import EmpresasPagina from './modulos/empresas/EmpresasPagina'
@@ -22,6 +23,12 @@ import IncidentesPagina from './modulos/incidentes/IncidentesPagina'
 import BloqueosPagina from './modulos/bloqueos/BloqueosPagina'
 import AuditoriaPagina from './modulos/auditoria/AuditoriaPagina'
 import UsuariosPagina from './modulos/usuarios/UsuariosPagina'
+
+// Garita (Manuel): carga diferida. El escáner de QR es una librería pesada;
+// así solo se descarga cuando alguien abre estas pantallas.
+const GaritaPagina = lazy(() => import('./modulos/garita/GaritaPagina'))
+const PersonasDentroPagina = lazy(() => import('./modulos/garita/PersonasDentroPagina'))
+const MovimientosPagina = lazy(() => import('./modulos/garita/MovimientosPagina'))
 
 export default function App() {
   return (
@@ -60,12 +67,34 @@ export default function App() {
             }
           />
 
-          {/* ===== Garita ===== */}
+          {/* ===== Garita (carga diferida) ===== */}
           <Route
             path="/garita"
             element={
               <RutaProtegida permisos={['garita.validar']}>
-                <GaritaPagina />
+                <Suspense fallback={<Cargando />}>
+                  <GaritaPagina />
+                </Suspense>
+              </RutaProtegida>
+            }
+          />
+          <Route
+            path="/garita/dentro"
+            element={
+              <RutaProtegida permisos={['accesos.ver_personas_dentro']}>
+                <Suspense fallback={<Cargando />}>
+                  <PersonasDentroPagina />
+                </Suspense>
+              </RutaProtegida>
+            }
+          />
+          <Route
+            path="/garita/movimientos"
+            element={
+              <RutaProtegida permisos={['accesos.ver_personas_dentro', 'reportes.ver']}>
+                <Suspense fallback={<Cargando />}>
+                  <MovimientosPagina />
+                </Suspense>
               </RutaProtegida>
             }
           />
