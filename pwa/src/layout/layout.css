@@ -1,0 +1,62 @@
+/* Estructura de app móvil: encabezado arriba, contenido y barra de navegación fija abajo.
+   env(safe-area-inset-*) respeta la muesca y la barra de gestos del teléfono en modo standalone. */
+.cp-app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-app-encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: calc(env(safe-area-inset-top) + 0.5rem) 1rem 0.5rem;
+  background: var(--cp-superficie, var(--bs-body-bg));
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.cp-app-contenido {
+  flex: 1;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  /* Espacio para que la barra inferior no tape el contenido */
+  padding: 1rem 1rem calc(4.75rem + env(safe-area-inset-bottom));
+}
+
+.cp-nav-inferior {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1030;
+  display: flex;
+  background: var(--cp-superficie, var(--bs-body-bg));
+  border-top: 1px solid var(--bs-border-color);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.cp-nav-inferior a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.55rem 0;
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+  text-decoration: none;
+}
+
+.cp-nav-inferior a.active {
+  color: var(--bs-primary-text-emphasis);
+  font-weight: 600;
+}
+
+.cp-nav-inferior a:focus-visible {
+  outline: 2px solid var(--bs-primary-text-emphasis);
+  outline-offset: -2px;
+}

@@ -1,0 +1,122 @@
+// =============================================================
+// Tema de Control Planta (Web y PWA)
+// Paleta "Industrial Enterprise" aplicada a Bootstrap 5.3.
+// Bootstrap genera botones, alertas, badges y formularios a partir
+// de estas variables, por eso se definen ANTES de importarlo.
+// =============================================================
+
+// ---------- 1. Paleta ----------
+$primary: #315b70; // Azul industrial: acciones principales
+$secondary: #247d83; // Teal: acento secundario
+$success: #23865b; // Aprobado, activo, válido
+$info: #5277a5; // Pendiente, emitido, informativo
+$warning: #d49a36; // Próximo a vencer, en revisión
+$danger: #c64c4c; // Rechazado, vencido, revocado, bloqueado
+$light: #eaf0f2;
+$dark: #142b3a;
+
+// ---------- 2. Tema claro: fondo, texto y bordes ----------
+$body-bg: #f3f5f6;
+$body-color: #172b36;
+$border-color: #dce4e8;
+$body-secondary-color: #637580; // Texto auxiliar (.text-body-secondary)
+
+// ---------- 3. Tema oscuro (data-bs-theme="dark") ----------
+$body-bg-dark: #1a2a35; // Fondo del contenido (antes #101b23, se veía demasiado oscuro)
+$body-color-dark: #e9f0f3;
+$border-color-dark: #3a515e;
+$body-secondary-color-dark: #a3b4bd;
+
+// ---------- 4. Tipografía ----------
+$font-family-sans-serif: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+$font-size-base: 0.875rem; // 14 px
+$headings-font-weight: 600;
+
+// ---------- 5. Bordes y sombras ----------
+$border-radius: 0.625rem; // 10 px: botones y tarjetas
+$border-radius-sm: 0.4375rem; // 7 px
+$border-radius-lg: 0.75rem; // 12 px: modales
+$input-border-radius: 0.4375rem; // 7 px: campos de formulario
+$input-padding-y: 0.6rem; // Campos de ~42 px de alto
+$btn-padding-y: 0.5rem;
+
+$box-shadow-sm: 0 1px 2px rgba(20, 43, 58, 0.06);
+$box-shadow: 0 2px 8px rgba(20, 43, 58, 0.08);
+
+// ---------- 6. Bootstrap completo ----------
+@import 'bootstrap/scss/bootstrap';
+
+// ---------- 7. Variables propias (lo que Bootstrap no cubre) ----------
+:root,
+[data-bs-theme='light'] {
+  --cp-superficie: #ffffff;
+  --cp-superficie-suave: #eaf0f2;
+  --cp-barra-lateral: #142b3a;
+  --cp-barra-lateral-hover: #1d3d50;
+  --cp-barra-lateral-activo: #315b70;
+  --cp-barra-lateral-texto: #d9e5e9;
+  --cp-panel-marca: #142b3a; // Panel azul del login
+  --cp-sombra-tarjeta: 0 10px 30px rgba(20, 43, 58, 0.08), 0 2px 6px rgba(20, 43, 58, 0.05);
+  --cp-ancho-barra: 248px;
+}
+
+[data-bs-theme='dark'] {
+  --cp-superficie: #213644; // Un poco más clara que el fondo para que las tarjetas se sigan distinguiendo
+  --cp-superficie-suave: #2a4251;
+  --cp-barra-lateral: #0d1921;
+  --cp-barra-lateral-hover: #182832;
+  --cp-barra-lateral-activo: #1d3d50;
+  --cp-barra-lateral-texto: #c4d3da;
+  --cp-panel-marca: #1d3d50; // Más claro que el fondo oscuro para que contraste
+  --cp-sombra-tarjeta: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+// ---------- 8. Ajustes generales ----------
+
+// Las tarjetas usan la superficie del tema (blanca en claro, azul grisáceo en oscuro)
+.card {
+  --bs-card-bg: var(--cp-superficie);
+}
+
+// En oscuro, el azul primario casi no se distingue del fondo: los botones de
+// contorno azul usan la versión clara del mismo azul (texto y borde)
+[data-bs-theme='dark'] .btn-outline-primary {
+  --bs-btn-color: var(--bs-primary-text-emphasis);
+  --bs-btn-border-color: var(--bs-primary-text-emphasis);
+}
+
+// Números del mismo ancho: fechas, códigos y cantidades se alinean en tablas
+.numeros-tabulares,
+table td {
+  font-variant-numeric: tabular-nums;
+}
+
+// Foco visible al navegar con teclado (se adapta al tema)
+:focus-visible {
+  outline: 2px solid var(--bs-primary-text-emphasis);
+  outline-offset: 2px;
+}
+
+// Encabezados de tabla en el tono suave del tema
+.table > thead th {
+  background-color: var(--cp-superficie-suave);
+  color: var(--bs-secondary-color);
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+// Tema oscuro: botones del encabezado (menú, tema, usuario/rol) y el de tema del login
+// con el tono claro del color secundario para que se lean sin pasar el mouse
+[data-bs-theme='dark'] .encabezado .btn-outline-secondary,
+[data-bs-theme='dark'] .login__boton-tema {
+  --bs-btn-color: var(--bs-secondary-text-emphasis);
+  --bs-btn-border-color: var(--bs-secondary-text-emphasis);
+}
+
+// Respetar a quien pide menos animaciones en su sistema
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

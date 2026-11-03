@@ -1,0 +1,153 @@
+/* ===== Estructura: una columna en celular, dos en escritorio ===== */
+.login {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 992px) {
+  .login {
+    grid-template-columns: minmax(380px, 5fr) 7fr;
+  }
+}
+
+/* ===== Panel azul ===== */
+.login__marca {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background-color: var(--cp-panel-marca);
+  color: var(--cp-barra-lateral-texto);
+}
+
+/* Franja de seguridad industrial (amarillo y el color del panel) */
+.login__franja {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 8px;
+  background: repeating-linear-gradient(-45deg, #d49a36 0 14px, var(--cp-panel-marca) 14px 28px);
+}
+
+/* Logo, título y descripción juntos y centrados */
+.login__marca-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 420px;
+}
+
+.login__logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.login__titulo {
+  color: #fff;
+  font-size: clamp(1.75rem, 2.4vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+}
+
+.login__descripcion {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+/* Botón y pista de la presentación (celular) */
+.login__acciones-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 3rem;
+}
+
+.login__continuar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1.75rem;
+  font-weight: 600;
+}
+
+.login__pista {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  opacity: 0.75;
+}
+
+/* ===== Celular y tablet: el panel azul cubre la pantalla y se desliza al tocar o deslizar ===== */
+@media (max-width: 991.98px) {
+  .login__marca {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    touch-action: pan-y; /* el gesto horizontal lo maneja la página */
+    transform: translateX(0);
+    transition: transform 0.5s ease, visibility 0s linear 0s;
+  }
+
+  .login__marca--oculta {
+    transform: translateX(-100%);
+    visibility: hidden; /* fuera de pantalla no recibe foco ni toques */
+    transition: transform 0.5s ease, visibility 0s linear 0.5s;
+  }
+}
+
+/* ===== Lado del formulario ===== */
+.login__formulario {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem 2rem;
+}
+
+/* Botón de tema en la esquina superior derecha */
+.login__boton-tema {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+/* Logo solo en celular y tablet */
+.login__logo-movil {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--bs-primary-text-emphasis);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Tarjeta con relieve */
+.login__tarjeta {
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem;
+  background-color: var(--cp-superficie);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-lg);
+  box-shadow: var(--cp-sombra-tarjeta);
+}
+
+/* En celular: menos relleno para aprovechar el ancho */
+@media (max-width: 575.98px) {
+  .login__tarjeta {
+    padding: 1.75rem 1.25rem;
+  }
+}
