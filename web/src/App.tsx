@@ -7,6 +7,8 @@ import { Cargando } from './componentes/EstadosPantalla'
 
 // Generales
 import LoginPagina from './modulos/auth/LoginPagina'
+import RecuperarPagina from './modulos/auth/RecuperarPagina'
+import RestablecerPagina from './modulos/auth/RestablecerPagina'
 import InicioPagina from './modulos/inicio/InicioPagina'
 
 // Operación (Manuel)
@@ -35,6 +37,8 @@ export default function App() {
     <Routes>
       {/* Públicas */}
       <Route path="/login" element={<LoginPagina />} />
+      <Route path="/recuperar" element={<RecuperarPagina />} />
+      <Route path="/restablecer" element={<RestablecerPagina />} />
 
       {/* Con sesión, dentro del layout (barra lateral + encabezado) */}
       <Route element={<RutaProtegida />}>
