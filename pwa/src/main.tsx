@@ -13,6 +13,7 @@ import '@fontsource/inter/700.css'
 import './estilos/tema.scss'
 
 import App from './App'
+import SesionProvider from './sesion/SesionProvider'
 import { ErrorApi } from './api/cliente'
 import { aplicarTemaInicial } from './apariencia/tema'
 
@@ -38,7 +39,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       {/* basename: todas las rutas de la PWA viven bajo /pwa */}
       <BrowserRouter basename="/pwa">
-        <App />
+        <SesionProvider>
+          <App />
+        </SesionProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,
