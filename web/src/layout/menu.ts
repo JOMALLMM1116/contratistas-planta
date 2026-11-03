@@ -54,7 +54,8 @@ export const MENU: GrupoMenu[] = [
         etiqueta: 'Credenciales',
         ruta: '/credenciales',
         icono: BadgeCheck,
-        permisos: ['credenciales.emitir', 'credenciales.revocar'],
+        // Los mismos permisos que su ruta en App.tsx: garita consulta credenciales, ve el QR e imprime pases
+        permisos: ['credenciales.emitir', 'credenciales.revocar', 'garita.validar'],
       },
     ],
   },
