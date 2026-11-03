@@ -1,0 +1,82 @@
+import type { Request, Response } from 'express';
+import { respuestaPaginada } from '../../shared/http/paginacion.js';
+import { alcanceDe } from '../../shared/seguridad/alcance.js';
+import * as permisosService from './permisos-trabajo.service.js';
+import {
+  cerrarPermisoSchema,
+  crearEvidenciaSchema,
+  crearPermisoSchema,
+  evidenciaParamsSchema,
+  iniciarPermisoSchema,
+  listarPermisosSchema,
+  permisoIdSchema,
+  registrarChecklistSchema,
+  revocarPermisoSchema,
+} from './permisos-trabajo.schemas.js';
+
+// En cada accion, el usuario responsable se toma de la sesion (req.usuario)
+// y reemplaza cualquier valor que venga en el cuerpo de la peticion.
+// Ademas se pasa su alcance: un usuario externo solo opera sobre lo suyo (SEG-01).
+
+export async function listar(req: Request, res: Response) {
+  const filtros = listarPermisosSchema.parse(req.query);
+  const { datos, total } = await permisosService.listar(filtros, alcanceDe(req.usuario));
+  res.json(respuestaPaginada(datos, total, filtros));
+}
+
+export async function obtener(req: Request, res: Response) {
+  const { id } = permisoIdSchema.parse(req.params);
+  res.json({ datos: await permisosService.obtener(id, alcanceDe(req.usuario)) });
+}
+
+export async function crear(req: Request, res: Response) {
+  const datos = crearPermisoSchema.parse({ ...req.body, aprobado_por: req.usuario!.id });
+  res.status(201).json({ datos: await permisosService.crear(datos) });
+}
+
+export async function iniciar(req: Request, res: Response) {
+  const { id } = permisoIdSchema.parse(req.params);
+  const datos = iniciarPermisoSchema.parse({ ...(req.body ?? {}), usuario_id: req.usuario!.id });
+  res.json({ datos: await permisosService.iniciar(id, datos, alcanceDe(req.usuario)) });
+}
+
+export async function cerrar(req: Request, res: Response) {
+  const { id } = permisoIdSchema.parse(req.params);
+  const datos = cerrarPermisoSchema.parse({ ...(req.body ?? {}), usuario_id: req.usuario!.id });
+  res.json({ datos: await permisosService.cerrar(id, datos, alcanceDe(req.usuario)) });
+}
+
+export async function revocar(req: Request, res: Response) {
+  const { id } = permisoIdSchema.parse(req.params);
+  const datos = revocarPermisoSchema.parse({ ...req.body, usuario_id: req.usuario!.id });
+  res.json({ datos: await permisosService.revocar(id, datos, alcanceDe(req.usuario)) });
+}
+
+export async function obtenerChecklist(req: Request, res: Response) {
+  const { id } = permisoIdSchema.parse(req.params);
+  res.json({ datos: await permisosService.obtenerChecklist(id, alcanceDe(req.usuario)) });
+}
+
+export async function registrarChecklist(req: Request, res: Response) {
+  const { id } = permisoIdSchema.parse(req.params);
+  const datos = registrarChecklistSchema.parse(req.body);
+  res.json({ datos: await permisosService.registrarChecklist(id, datos, alcanceDe(req.usuario)) });
+}
+
+export async function listarEvidencias(req: Request, res: Response) {
+  const { id } = permisoIdSchema.parse(req.params);
+  res.json({ datos: await permisosService.listarEvidencias(id, alcanceDe(req.usuario)) });
+}
+
+export async function agregarEvidencia(req: Request, res: Response) {
+  const { id } = permisoIdSchema.parse(req.params);
+  const datos = crearEvidenciaSchema.parse({ ...req.body, registrado_por: req.usuario!.id });
+  res
+    .status(201)
+    .json({ datos: await permisosService.agregarEvidencia(id, datos, alcanceDe(req.usuario), req.usuario!.id) });
+}
+
+export async function eliminarEvidencia(req: Request, res: Response) {
+  const { id, evidenciaId } = evidenciaParamsSchema.parse(req.params);
+  res.json({ datos: await permisosService.eliminarEvidencia(id, evidenciaId, alcanceDe(req.usuario)) });
+}

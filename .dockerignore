@@ -1,0 +1,21 @@
+# Dependencias y compilados (se generan dentro de la imagen)
+**/node_modules
+server/dist
+server/src/generated
+web/dist
+pwa/dist
+
+# Secretos y datos locales
+.env
+.env.*
+!.env.example
+uploads
+server/uploads
+
+# Control de versiones y editor
+.git
+.github
+.vscode
+
+# Frontend prototipo (no forma parte de esta imagen por ahora)
+ver_1
