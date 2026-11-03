@@ -109,7 +109,7 @@ Web, PWA y API desde el mismo dominio no hay problemas de CORS ni de cookies ent
 | Acceso | Inicio de sesión, recuperación y restablecimiento de contraseña por correo, menú según permisos, tema claro/oscuro |
 | Inicio | Dashboard con datos reales y gráficas (para quien tiene permiso de reportes); bienvenida con accesos para los demás roles |
 | Solicitudes | Lista con búsqueda, filtros y paginación; creación con contratistas, zonas y equipos; requisitos por contratista; evaluación de riesgo; autorizaciones por etapas; rechazo y cancelación con motivo |
-| Credenciales | Emisión desde la solicitud aprobada (usos ilimitados, un solo ingreso u otra cantidad), QR, código corto, impresión de pase en PDF y revocación con motivo |
+| Credenciales | Emisión desde la solicitud aprobada (usos ilimitados, un solo ingreso u otra cantidad), QR, código corto, impresión de pase en PDF y revocación con motivo. Lista general con filtros por estado, contratista y solicitud, disponible también para garita (ver QR e imprimir pases) |
 | Permisos de trabajo | Emisión desde solicitudes cuyo tipo de trabajo lo exige, detalle y revocación |
 | Garita | Validación por cámara, código manual o lector USB; registro de entrada y salida; personas dentro por zona; movimientos con filtros |
 | Personal | Empresas contratistas y contratistas |
@@ -124,7 +124,11 @@ Web, PWA y API desde el mismo dominio no hay problemas de CORS ni de cookies ent
 | Instalable | Manifest, íconos, service worker con alcance `/pwa/` y modo `standalone` |
 | Acceso | Mismo inicio de sesión y misma sesión que la Web; el personal interno recibe un aviso para usar la Web |
 | Mi credencial | Credenciales activas con su solicitud y zonas autorizadas; **QR a pantalla completa** (fondo blanco, código corto y la pantalla no se apaga mientras está abierto) |
-| Navegación | Barra inferior tipo aplicación móvil y cuenta con cierre de sesión |
+| Solicitudes | Lista con filtro por estado y detalle: vigencia, horario, zonas, personas, equipos y **requisitos faltantes** de cada persona, con acceso directo a sus documentos |
+| Documentos | Subir documentos con la **cámara** del teléfono o eligiendo un PDF o imagen; estado de revisión, motivo de rechazo y avisos de vencimiento |
+| Permiso de trabajo | Desde el detalle de la solicitud: **checklist** de seguridad (cada contratista responde el suyo), **iniciar y cerrar la actividad** y **evidencias** con foto o archivo (inicio, durante y cierre) |
+| Supervisor de campo | Ve las solicitudes, documentos y permisos de **su empresa** y puede responder el checklist de su cuadrilla |
+| Navegación | Barra inferior tipo aplicación móvil (Mi credencial, Solicitudes, Documentos y Cuenta) y cierre de sesión |
 
 ### 3.3 Reglas de negocio
 
