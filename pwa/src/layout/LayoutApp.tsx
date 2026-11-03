@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { ClipboardList, QrCode, UserRound } from 'lucide-react'
+import { ClipboardList, FileText, QrCode, UserRound } from 'lucide-react'
 import BotonTema from '../componentes/BotonTema'
 import './layout.css'
 
@@ -7,6 +7,7 @@ import './layout.css'
 const OPCIONES = [
   { ruta: '/', texto: 'Mi credencial', icono: QrCode },
   { ruta: '/solicitudes', texto: 'Solicitudes', icono: ClipboardList },
+  { ruta: '/documentos', texto: 'Documentos', icono: FileText },
   { ruta: '/cuenta', texto: 'Cuenta', icono: UserRound },
 ]
 
