@@ -2,6 +2,7 @@ import type { Prisma } from '../../generated/prisma/client.js';
 import { prisma } from '../../shared/db.js';
 import { AppError } from '../../shared/errors/app-error.js';
 import { paginar } from '../../shared/http/paginacion.js';
+import { fueraDeAlcance, type Alcance } from '../../shared/seguridad/alcance.js';
 import * as archivosService from '../archivos/archivos.service.js';
 import * as solicitudesService from '../solicitudes/solicitudes.service.js';
 import type {
@@ -15,6 +16,9 @@ import type {
 } from './permisos-trabajo.schemas.js';
 
 type Solicitud = Awaited<ReturnType<typeof solicitudesService.obtener>>;
+
+// Alcance por defecto para llamadas internas entre modulos (el controlador siempre pasa el de la sesion)
+const INTERNO: Alcance = { tipo: 'interno' };
 
 const solicitudSelect = {
   id: true,
@@ -47,9 +51,32 @@ function formatear<T extends { hora_inicio: Date; hora_fin: Date }>(permiso: T) 
   return { ...permiso, hora_inicio: hhmm(permiso.hora_inicio), hora_fin: hhmm(permiso.hora_fin) };
 }
 
-async function buscar(id: string) {
+// ---- Autorizacion por objeto (SEG-01) ----
+// Un permiso pertenece a su solicitud: mismo alcance que solicitudes
+function filtroAlcance(alcance: Alcance): Prisma.permisos_trabajoWhereInput {
+  switch (alcance.tipo) {
+    case 'interno':
+      return {};
+    case 'empresa':
+      return { solicitudes_acceso: { empresa_id: alcance.empresaId } };
+    case 'contratista':
+      return { solicitudes_acceso: { solicitud_contratistas: { some: { contratista_id: alcance.contratistaId } } } };
+    default:
+      return { id: { in: [] } };
+  }
+}
+
+// Si el permiso existe pero no esta en el alcance, responde igual que si no existiera
+async function verificarAlcance(id: string, alcance: Alcance) {
+  if (alcance.tipo === 'interno') return;
+  const visible = await prisma.permisos_trabajo.count({ where: { AND: [{ id }, filtroAlcance(alcance)] } });
+  if (visible === 0) throw fueraDeAlcance('PERMISO_NO_ENCONTRADO', `No existe el permiso de trabajo ${id}`);
+}
+
+async function buscar(id: string, alcance: Alcance = INTERNO) {
   const permiso = await prisma.permisos_trabajo.findUnique({ where: { id } });
   if (!permiso) throw new AppError(404, 'PERMISO_NO_ENCONTRADO', `No existe el permiso de trabajo ${id}`);
+  await verificarAlcance(id, alcance);
   return permiso;
 }
 
@@ -123,14 +150,19 @@ async function calcularChecklist(solicitud: Solicitud) {
   };
 }
 
-export async function obtenerChecklist(id: string) {
-  const permiso = await buscar(id);
+export async function obtenerChecklist(id: string, alcance: Alcance = INTERNO) {
+  const permiso = await buscar(id, alcance);
   return calcularChecklist(await solicitudesService.obtener(permiso.solicitud_id));
 }
 
-export async function registrarChecklist(id: string, datos: RegistrarChecklist) {
-  const permiso = await buscar(id);
+export async function registrarChecklist(id: string, datos: RegistrarChecklist, alcance: Alcance = INTERNO) {
+  const permiso = await buscar(id, alcance);
   exigirEstado(permiso.estado, ['emitido', 'en_ejecucion'], 'Solo se registra el checklist de un permiso emitido o en ejecucion');
+
+  // Un contratista solo responde su propio checklist (no el de sus companeros)
+  if (alcance.tipo === 'contratista' && datos.respuestas.some((r) => r.contratista_id !== alcance.contratistaId)) {
+    throw new AppError(403, 'SIN_PERMISO', 'Solo puede responder su propio checklist');
+  }
 
   const solicitud = await solicitudesService.obtener(permiso.solicitud_id);
   const contratistasValidos = new Set(solicitud.solicitud_contratistas.map((s) => s.contratistas.id));
@@ -172,7 +204,7 @@ export async function registrarChecklist(id: string, datos: RegistrarChecklist) 
 }
 
 // ---- Permisos ----
-export async function listar(filtros: ListarPermisos) {
+export async function listar(filtros: ListarPermisos, alcance: Alcance = INTERNO) {
   const where: Prisma.permisos_trabajoWhereInput = {};
 
   if (filtros.buscar) where.codigo = { contains: filtros.buscar, mode: 'insensitive' };
@@ -182,18 +214,23 @@ export async function listar(filtros: ListarPermisos) {
   if (filtros.desde) where.fecha_fin = { gte: filtros.desde };
   if (filtros.hasta) where.fecha_inicio = { lte: filtros.hasta };
 
+  // Los filtros del usuario se combinan con su alcance (no lo pueden ampliar)
+  const condicion: Prisma.permisos_trabajoWhereInput = { AND: [where, filtroAlcance(alcance)] };
   const orderBy = { [filtros.ordenar_por]: filtros.orden } as Prisma.permisos_trabajoOrderByWithRelationInput;
 
   const [total, datos] = await prisma.$transaction([
-    prisma.permisos_trabajo.count({ where }),
-    prisma.permisos_trabajo.findMany({ where, orderBy, include: incluirResumen, ...paginar(filtros) }),
+    prisma.permisos_trabajo.count({ where: condicion }),
+    prisma.permisos_trabajo.findMany({ where: condicion, orderBy, include: incluirResumen, ...paginar(filtros) }),
   ]);
 
   return { datos: datos.map((p) => formatear(p)), total };
 }
 
-export async function obtener(id: string) {
-  const permiso = await prisma.permisos_trabajo.findUnique({ where: { id }, include: incluirDetalle });
+export async function obtener(id: string, alcance: Alcance = INTERNO) {
+  const permiso = await prisma.permisos_trabajo.findFirst({
+    where: { AND: [{ id }, filtroAlcance(alcance)] },
+    include: incluirDetalle,
+  });
   if (!permiso) throw new AppError(404, 'PERMISO_NO_ENCONTRADO', `No existe el permiso de trabajo ${id}`);
   return { ...formatear(permiso), vigente: await esVigente(id) };
 }
@@ -228,8 +265,8 @@ export async function crear(datos: CrearPermiso) {
   return obtener(creado.id);
 }
 
-export async function iniciar(id: string, datos: IniciarPermiso) {
-  const permiso = await buscar(id);
+export async function iniciar(id: string, datos: IniciarPermiso, alcance: Alcance = INTERNO) {
+  const permiso = await buscar(id, alcance);
   exigirEstado(permiso.estado, ['emitido'], 'Solo se inicia un permiso emitido');
 
   if (!(await esVigente(id))) {
@@ -260,11 +297,11 @@ export async function iniciar(id: string, datos: IniciarPermiso) {
       actividad_inicio_por: datos.usuario_id,
     }),
   );
-  return obtener(id);
+  return obtener(id, alcance);
 }
 
-export async function cerrar(id: string, datos: CerrarPermiso) {
-  const permiso = await buscar(id);
+export async function cerrar(id: string, datos: CerrarPermiso, alcance: Alcance = INTERNO) {
+  const permiso = await buscar(id, alcance);
   exigirEstado(permiso.estado, ['en_ejecucion'], 'Solo se cierra un permiso en ejecucion');
 
   await prisma.$transaction((tx) =>
@@ -273,11 +310,11 @@ export async function cerrar(id: string, datos: CerrarPermiso) {
       actividad_fin_por: datos.usuario_id,
     }),
   );
-  return obtener(id);
+  return obtener(id, alcance);
 }
 
-export async function revocar(id: string, datos: RevocarPermiso) {
-  const permiso = await buscar(id);
+export async function revocar(id: string, datos: RevocarPermiso, alcance: Alcance = INTERNO) {
+  const permiso = await buscar(id, alcance);
   exigirEstado(permiso.estado, ['emitido', 'en_ejecucion'], 'Solo se revoca un permiso emitido o en ejecucion');
 
   await prisma.$transaction((tx) =>
@@ -287,12 +324,12 @@ export async function revocar(id: string, datos: RevocarPermiso) {
       motivo_revocacion: datos.motivo,
     }),
   );
-  return obtener(id);
+  return obtener(id, alcance);
 }
 
 // ---- Evidencias ----
-export async function listarEvidencias(id: string) {
-  await buscar(id);
+export async function listarEvidencias(id: string, alcance: Alcance = INTERNO) {
+  await buscar(id, alcance);
   return prisma.evidencias_trabajo.findMany({
     where: { permiso_trabajo_id: id },
     orderBy: { created_at: 'asc' },
@@ -300,10 +337,16 @@ export async function listarEvidencias(id: string) {
   });
 }
 
-export async function agregarEvidencia(id: string, datos: CrearEvidencia) {
-  const permiso = await buscar(id);
+export async function agregarEvidencia(
+  id: string,
+  datos: CrearEvidencia,
+  alcance: Alcance = INTERNO,
+  usuarioId: string | null = null,
+) {
+  const permiso = await buscar(id, alcance);
   exigirEstado(permiso.estado, ['emitido', 'en_ejecucion', 'cerrado'], 'No se agregan evidencias a un permiso revocado o vencido');
-  await archivosService.obtener(datos.archivo_id);
+  // El archivo debe ser uno que el usuario puede ver (no se puede vincular el archivo de otra persona)
+  await archivosService.obtener(datos.archivo_id, alcance, usuarioId);
 
   return prisma.evidencias_trabajo.create({
     data: {
@@ -318,8 +361,8 @@ export async function agregarEvidencia(id: string, datos: CrearEvidencia) {
 }
 
 // Se quita el vinculo; el archivo sigue en el modulo de archivos
-export async function eliminarEvidencia(id: string, evidenciaId: string) {
-  const permiso = await buscar(id);
+export async function eliminarEvidencia(id: string, evidenciaId: string, alcance: Alcance = INTERNO) {
+  const permiso = await buscar(id, alcance);
   exigirEstado(permiso.estado, ['emitido', 'en_ejecucion'], 'Las evidencias de un permiso cerrado, revocado o vencido no se eliminan');
 
   const evidencia = await prisma.evidencias_trabajo.findFirst({ where: { id: evidenciaId, permiso_trabajo_id: id } });
