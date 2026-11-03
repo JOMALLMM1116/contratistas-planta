@@ -18,6 +18,8 @@ interface Props {
   valor: Objetivo | null
   error?: string
   deshabilitado?: boolean
+  /** Si es true, no consulta ni muestra la lista hasta que se escriba algo. Por defecto false. */
+  soloAlEscribir?: boolean
   alCambiar: (objetivo: Objetivo | null) => void
 }
 
@@ -36,7 +38,7 @@ interface EmpresaApi {
 }
 
 /** Busca contratistas o empresas activas. Al elegir una, queda fija con un botón para cambiarla. */
-export default function SelectorContratistaEmpresa({ tipo, valor, error, deshabilitado, alCambiar }: Props) {
+export default function SelectorContratistaEmpresa({ tipo, valor, error, deshabilitado, soloAlEscribir = false, alCambiar }: Props) {
   const [texto, setTexto] = useState('')
   const [buscar, setBuscar] = useState('')
 
@@ -51,6 +53,9 @@ export default function SelectorContratistaEmpresa({ tipo, valor, error, deshabi
     setTexto('')
     setBuscar('')
   }, [tipo])
+
+  // Con soloAlEscribir, la lista solo existe si hay texto (sin espacios) y ya se buscó por él
+  const mostrarLista = !soloAlEscribir || (texto.trim() !== '' && buscar !== '')
 
   const consulta = useQuery({
     queryKey: ['selector-contratista-empresa', tipo, buscar],
@@ -77,7 +82,7 @@ export default function SelectorContratistaEmpresa({ tipo, valor, error, deshabi
       })
       return r.datos.map((e) => ({ tipo, id: e.id, nombre: e.razon_social, detalle: `NIT ${e.nit}` }))
     },
-    enabled: valor === null,
+    enabled: valor === null && (!soloAlEscribir || buscar !== ''),
     staleTime: 30_000,
   })
 
@@ -116,17 +121,19 @@ export default function SelectorContratistaEmpresa({ tipo, valor, error, deshabi
       </InputGroup>
       {error && <div className="text-danger small mt-1">{error}</div>}
 
-      <ListGroup className="mt-2" style={{ maxHeight: 220, overflowY: 'auto' }}>
-        {consulta.isPending && <ListGroup.Item disabled>Buscando…</ListGroup.Item>}
-        {consulta.isError && <ListGroup.Item className="text-danger">No se pudo buscar. Intenta de nuevo.</ListGroup.Item>}
-        {consulta.isSuccess && opciones.length === 0 && <ListGroup.Item disabled>Sin resultados</ListGroup.Item>}
-        {opciones.map((opcion) => (
-          <ListGroup.Item key={opcion.id} action disabled={deshabilitado} onClick={() => alCambiar(opcion)}>
-            <div>{opcion.nombre}</div>
-            <small className="text-body-secondary">{opcion.detalle}</small>
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
+      {mostrarLista && (
+        <ListGroup className="mt-2" style={{ maxHeight: 220, overflowY: 'auto' }}>
+          {consulta.isPending && <ListGroup.Item disabled>Buscando…</ListGroup.Item>}
+          {consulta.isError && <ListGroup.Item className="text-danger">No se pudo buscar. Intenta de nuevo.</ListGroup.Item>}
+          {consulta.isSuccess && opciones.length === 0 && <ListGroup.Item disabled>Sin resultados</ListGroup.Item>}
+          {opciones.map((opcion) => (
+            <ListGroup.Item key={opcion.id} action disabled={deshabilitado} onClick={() => alCambiar(opcion)}>
+              <div>{opcion.nombre}</div>
+              <small className="text-body-secondary">{opcion.detalle}</small>
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      )}
     </div>
   )
 }
