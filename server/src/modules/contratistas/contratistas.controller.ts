@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { respuestaPaginada } from '../../shared/http/paginacion.js';
+import { alcanceDe } from '../../shared/seguridad/alcance.js';
 import * as contratistasService from './contratistas.service.js';
 import {
   actualizarContratistaSchema,
@@ -8,15 +9,17 @@ import {
   listarContratistasSchema,
 } from './contratistas.schemas.js';
 
+// Consultar queda limitado al alcance del usuario (SEG-01); escribir exige permisos de personal interno
+
 export async function listar(req: Request, res: Response) {
   const filtros = listarContratistasSchema.parse(req.query);
-  const { datos, total } = await contratistasService.listar(filtros);
+  const { datos, total } = await contratistasService.listar(filtros, alcanceDe(req.usuario));
   res.json(respuestaPaginada(datos, total, filtros));
 }
 
 export async function obtener(req: Request, res: Response) {
   const { id } = contratistaIdSchema.parse(req.params);
-  res.json({ datos: await contratistasService.obtener(id) });
+  res.json({ datos: await contratistasService.obtener(id, alcanceDe(req.usuario)) });
 }
 
 export async function crear(req: Request, res: Response) {

@@ -2,14 +2,33 @@ import type { Prisma } from '../../generated/prisma/client.js';
 import { prisma } from '../../shared/db.js';
 import { AppError } from '../../shared/errors/app-error.js';
 import { paginar } from '../../shared/http/paginacion.js';
+import type { Alcance } from '../../shared/seguridad/alcance.js';
 import type { ActualizarEmpresa, CrearEmpresa, ListarEmpresas } from './empresas-contratistas.schemas.js';
+
+// Alcance por defecto para llamadas internas entre modulos (el controlador siempre pasa el de la sesion)
+const INTERNO: Alcance = { tipo: 'interno' };
 
 // Cantidad de contratistas y equipos de la empresa
 const incluir = {
   _count: { select: { contratistas: true, equipos: true } },
 } satisfies Prisma.empresas_contratistasInclude;
 
-export async function listar(filtros: ListarEmpresas) {
+// SEG-01: un externo solo ve su propia empresa
+function filtroAlcance(alcance: Alcance): Prisma.empresas_contratistasWhereInput {
+  switch (alcance.tipo) {
+    case 'interno':
+      return {};
+    case 'empresa':
+      return { id: alcance.empresaId };
+    case 'contratista':
+      // La empresa del contratista es la que contiene su ficha
+      return { contratistas: { some: { id: alcance.contratistaId } } };
+    default:
+      return { id: { in: [] } };
+  }
+}
+
+export async function listar(filtros: ListarEmpresas, alcance: Alcance = INTERNO) {
   const where: Prisma.empresas_contratistasWhereInput = {};
 
   if (filtros.buscar) {
@@ -21,18 +40,22 @@ export async function listar(filtros: ListarEmpresas) {
   }
   if (filtros.estado) where.estado = filtros.estado;
 
+  const condicion: Prisma.empresas_contratistasWhereInput = { AND: [where, filtroAlcance(alcance)] };
   const orderBy = { [filtros.ordenar_por]: filtros.orden } as Prisma.empresas_contratistasOrderByWithRelationInput;
 
   const [total, datos] = await prisma.$transaction([
-    prisma.empresas_contratistas.count({ where }),
-    prisma.empresas_contratistas.findMany({ where, orderBy, include: incluir, ...paginar(filtros) }),
+    prisma.empresas_contratistas.count({ where: condicion }),
+    prisma.empresas_contratistas.findMany({ where: condicion, orderBy, include: incluir, ...paginar(filtros) }),
   ]);
 
   return { datos, total };
 }
 
-export async function obtener(id: string) {
-  const empresa = await prisma.empresas_contratistas.findUnique({ where: { id }, include: incluir });
+export async function obtener(id: string, alcance: Alcance = INTERNO) {
+  const empresa = await prisma.empresas_contratistas.findFirst({
+    where: { AND: [{ id }, filtroAlcance(alcance)] },
+    include: incluir,
+  });
   if (!empresa) throw new AppError(404, 'EMPRESA_NO_ENCONTRADA', `No existe la empresa ${id}`);
   return empresa;
 }
