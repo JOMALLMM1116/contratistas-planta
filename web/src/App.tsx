@@ -16,7 +16,7 @@ import SolicitudesPagina from './modulos/solicitudes/SolicitudesPagina'
 import NuevaSolicitudPagina from './modulos/solicitudes/NuevaSolicitudPagina'
 import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
 
-// operacion (anthony)
+// Operación (Anthony)
 import PermisosTrabajoPagina from './modulos/permisos-trabajo/PermisosTrabajoPagina'
 
 // Personal, cumplimiento, seguridad y administración (Anthony)
@@ -29,11 +29,12 @@ import BloqueosPagina from './modulos/bloqueos/BloqueosPagina'
 import AuditoriaPagina from './modulos/auditoria/AuditoriaPagina'
 import UsuariosPagina from './modulos/usuarios/UsuariosPagina'
 
-// Garita (Manuel): carga diferida. El escáner de QR es una librería pesada;
-// así solo se descarga cuando alguien abre estas pantallas.
+// Carga diferida: pantallas con librerías pesadas (escáner de QR, gráficas).
+// Solo se descargan cuando alguien las abre.
 const GaritaPagina = lazy(() => import('./modulos/garita/GaritaPagina'))
 const PersonasDentroPagina = lazy(() => import('./modulos/garita/PersonasDentroPagina'))
 const MovimientosPagina = lazy(() => import('./modulos/garita/MovimientosPagina'))
+const ReportesPagina = lazy(() => import('./modulos/reportes/ReportesPagina'))
 
 export default function App() {
   return (
@@ -73,7 +74,6 @@ export default function App() {
               </RutaProtegida>
             }
           />
-
           <Route
             path="/permisos-trabajo"
             element={
@@ -82,6 +82,7 @@ export default function App() {
               </RutaProtegida>
             }
           />
+
           {/* ===== Garita (carga diferida) ===== */}
           <Route
             path="/garita"
@@ -169,6 +170,16 @@ export default function App() {
           />
 
           {/* ===== Administración ===== */}
+          <Route
+            path="/reportes"
+            element={
+              <RutaProtegida permisos={['reportes.ver']}>
+                <Suspense fallback={<Cargando />}>
+                  <ReportesPagina />
+                </Suspense>
+              </RutaProtegida>
+            }
+          />
           <Route
             path="/auditoria"
             element={
