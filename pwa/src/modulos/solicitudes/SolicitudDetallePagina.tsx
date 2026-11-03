@@ -7,6 +7,7 @@ import { Cargando, ErrorCarga } from '../../componentes/EstadosPantalla'
 import { useSesion } from '../../sesion/contexto'
 import { formatearDia } from '../../utilidades/fechas'
 import { hora, textoTipoRequisito } from './ayudas'
+import PermisoDeSolicitud from './PermisoDeSolicitud'
 import { useRequisitos, useSolicitud } from './solicitudes.api'
 
 function Dato({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
@@ -198,6 +199,8 @@ export default function SolicitudDetallePagina() {
           )}
         </Card.Body>
       </Card>
+
+      {s.tipos_trabajo.requiere_permiso_trabajo && <PermisoDeSolicitud solicitudId={id} />}
 
       <Requisitos id={id} miContratistaId={miContratistaId} />
     </>

@@ -5,6 +5,7 @@ import LoginPagina from './modulos/auth/LoginPagina'
 import MiCredencialPagina from './modulos/credencial/MiCredencialPagina'
 import MisSolicitudesPagina from './modulos/solicitudes/MisSolicitudesPagina'
 import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
+import PermisoPagina from './modulos/permisos-trabajo/PermisoPagina'
 import CuentaPagina from './modulos/cuenta/CuentaPagina'
 import DocumentosPagina from './modulos/documentos/DocumentosPagina'
 
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/" element={<MiCredencialPagina />} />
           <Route path="/solicitudes" element={<MisSolicitudesPagina />} />
           <Route path="/solicitudes/:id" element={<SolicitudDetallePagina />} />
+          <Route path="/permisos-trabajo/:id" element={<PermisoPagina />} />
           <Route path="/documentos" element={<DocumentosPagina />} />
           <Route path="/cuenta" element={<CuentaPagina />} />
         </Route>
