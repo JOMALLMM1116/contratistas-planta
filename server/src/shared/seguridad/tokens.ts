@@ -12,6 +12,8 @@ export type UsuarioSesion = {
   id: string;
   email: string;
   rol: string;
+  /** Rol de personal de la planta (true) o de una empresa contratista (false) */
+  es_interno: boolean;
   permisos: string[];
   empresa_id: string | null;
   contratista_id: string | null;
@@ -21,6 +23,7 @@ export function firmarAccessToken(u: UsuarioSesion) {
   return new SignJWT({
     email: u.email,
     rol: u.rol,
+    es_interno: u.es_interno,
     permisos: u.permisos,
     empresa_id: u.empresa_id,
     contratista_id: u.contratista_id,
@@ -46,6 +49,8 @@ export async function verificarAccessToken(token: string): Promise<UsuarioSesion
       id: payload.sub as string,
       email: payload.email as string,
       rol: payload.rol as string,
+      // Falla cerrado: un token sin este dato (anterior al cambio) nunca se trata como interno
+      es_interno: payload.es_interno === true,
       permisos: (payload.permisos as string[] | undefined) ?? [],
       empresa_id: (payload.empresa_id as string | null | undefined) ?? null,
       contratista_id: (payload.contratista_id as string | null | undefined) ?? null,

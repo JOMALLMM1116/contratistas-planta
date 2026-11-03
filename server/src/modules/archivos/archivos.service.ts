@@ -6,13 +6,63 @@ import type { Prisma } from '../../generated/prisma/client.js';
 import { prisma } from '../../shared/db.js';
 import { AppError } from '../../shared/errors/app-error.js';
 import { paginar } from '../../shared/http/paginacion.js';
+import type { Alcance } from '../../shared/seguridad/alcance.js';
 import type { ListarArchivos } from './archivos.schemas.js';
 import { UPLOADS_DIR } from './archivos.storage.js';
+
+// Alcance por defecto para llamadas internas entre modulos (el controlador siempre pasa el de la sesion)
+const INTERNO: Alcance = { tipo: 'interno' };
 
 // BigInt no se serializa a JSON y storage_key es un detalle interno
 function serializar<T extends { tamano_bytes: bigint; storage_key: string }>(archivo: T) {
   const { storage_key, tamano_bytes, ...resto } = archivo;
   return { ...resto, tamano_bytes: Number(tamano_bytes) };
+}
+
+// ---- Autorizacion por objeto (SEG-01) ----
+// Un archivo no tiene dueno directo: pertenece a quien lo subio y a los registros que lo usan
+// (documentos, capacitaciones, evidencias de trabajo). Las evidencias de incidentes solo las ve
+// el personal interno o quien las subio.
+function filtroAlcance(alcance: Alcance, usuarioId: string | null): Prisma.archivosWhereInput {
+  const propios: Prisma.archivosWhereInput[] = usuarioId ? [{ subido_por: usuarioId }] : [];
+
+  switch (alcance.tipo) {
+    case 'interno':
+      return {};
+    case 'contratista': {
+      const c = alcance.contratistaId;
+      return {
+        OR: [
+          ...propios,
+          { documentos: { some: { contratista_id: c } } },
+          { contratista_capacitaciones: { some: { contratista_id: c } } },
+          {
+            evidencias_trabajo: {
+              some: { permisos_trabajo: { solicitudes_acceso: { solicitud_contratistas: { some: { contratista_id: c } } } } },
+            },
+          },
+        ],
+      };
+    }
+    case 'empresa': {
+      const e = alcance.empresaId;
+      return {
+        OR: [
+          ...propios,
+          {
+            documentos: {
+              some: { OR: [{ empresa_id: e }, { contratistas: { empresa_id: e } }, { equipos: { empresa_id: e } }] },
+            },
+          },
+          { contratista_capacitaciones: { some: { contratistas: { empresa_id: e } } } },
+          { evidencias_trabajo: { some: { permisos_trabajo: { solicitudes_acceso: { empresa_id: e } } } } },
+        ],
+      };
+    }
+    default:
+      // Falla cerrado: ningun archivo
+      return { id: { in: [] } };
+  }
 }
 
 async function leerCabecera(ruta: string) {
@@ -54,30 +104,32 @@ function rutaEnDisco(storageKey: string) {
   return path.join(UPLOADS_DIR, path.basename(storageKey));
 }
 
-async function buscar(id: string) {
-  const archivo = await prisma.archivos.findUnique({ where: { id } });
+// Si el archivo existe pero no esta en el alcance, responde igual que si no existiera
+async function buscar(id: string, alcance: Alcance = INTERNO, usuarioId: string | null = null) {
+  const archivo = await prisma.archivos.findFirst({ where: { AND: [{ id }, filtroAlcance(alcance, usuarioId)] } });
   if (!archivo) throw new AppError(404, 'ARCHIVO_NO_ENCONTRADO', `No existe el archivo ${id}`);
   return archivo;
 }
 
-export async function listar(filtros: ListarArchivos) {
+export async function listar(filtros: ListarArchivos, alcance: Alcance = INTERNO, usuarioId: string | null = null) {
   const where: Prisma.archivosWhereInput = {};
 
   if (filtros.buscar) where.nombre_original = { contains: filtros.buscar, mode: 'insensitive' };
   if (filtros.mime_type) where.mime_type = filtros.mime_type;
 
+  const condicion: Prisma.archivosWhereInput = { AND: [where, filtroAlcance(alcance, usuarioId)] };
   const orderBy = { [filtros.ordenar_por]: filtros.orden } as Prisma.archivosOrderByWithRelationInput;
 
   const [total, datos] = await prisma.$transaction([
-    prisma.archivos.count({ where }),
-    prisma.archivos.findMany({ where, orderBy, ...paginar(filtros) }),
+    prisma.archivos.count({ where: condicion }),
+    prisma.archivos.findMany({ where: condicion, orderBy, ...paginar(filtros) }),
   ]);
 
   return { datos: datos.map((a) => serializar(a)), total };
 }
 
-export async function obtener(id: string) {
-  return serializar(await buscar(id));
+export async function obtener(id: string, alcance: Alcance = INTERNO, usuarioId: string | null = null) {
+  return serializar(await buscar(id, alcance, usuarioId));
 }
 
 // Multer ya guardo el archivo en disco: aqui se verifica y se registra en la base
@@ -111,8 +163,8 @@ export async function registrar(archivo: Express.Multer.File, subidoPor: string)
   }
 }
 
-export async function datosDescarga(id: string) {
-  const archivo = await buscar(id);
+export async function datosDescarga(id: string, alcance: Alcance = INTERNO, usuarioId: string | null = null) {
+  const archivo = await buscar(id, alcance, usuarioId);
   const ruta = rutaEnDisco(archivo.storage_key);
 
   try {
@@ -125,8 +177,8 @@ export async function datosDescarga(id: string) {
 }
 
 // Borrado real: si un documento o evidencia lo usa, la FK responde 409
-export async function eliminar(id: string) {
-  const archivo = await buscar(id);
+export async function eliminar(id: string, alcance: Alcance = INTERNO, usuarioId: string | null = null) {
+  const archivo = await buscar(id, alcance, usuarioId);
   await prisma.archivos.delete({ where: { id } });
   await fs.rm(rutaEnDisco(archivo.storage_key), { force: true });
   return serializar(archivo);

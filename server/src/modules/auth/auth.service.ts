@@ -57,6 +57,7 @@ function aSesion(perfil: Perfil): UsuarioSesion {
     id: perfil.id,
     email: perfil.email,
     rol: perfil.rol.codigo,
+    es_interno: perfil.rol.es_interno, // ← AGREGAR esta línea
     permisos: perfil.permisos,
     empresa_id: perfil.empresa_id,
     contratista_id: perfil.contratista_id,
