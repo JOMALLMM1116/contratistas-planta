@@ -7,10 +7,11 @@ import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
 import LoginPagina from './modulos/auth/LoginPagina'
 import InicioPagina from './modulos/inicio/InicioPagina'
 
-// Operación (Manuel)
+// Operación y garita (Manuel)
 import SolicitudesPagina from './modulos/solicitudes/SolicitudesPagina'
 import NuevaSolicitudPagina from './modulos/solicitudes/NuevaSolicitudPagina'
 import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
+import GaritaPagina from './modulos/garita/GaritaPagina'
 
 // Personal, cumplimiento, seguridad y administración (Anthony)
 import EmpresasPagina from './modulos/empresas/EmpresasPagina'
@@ -55,6 +56,16 @@ export default function App() {
             element={
               <RutaProtegida permisos={['solicitudes.ver']}>
                 <SolicitudDetallePagina />
+              </RutaProtegida>
+            }
+          />
+
+          {/* ===== Garita ===== */}
+          <Route
+            path="/garita"
+            element={
+              <RutaProtegida permisos={['garita.validar']}>
+                <GaritaPagina />
               </RutaProtegida>
             }
           />
