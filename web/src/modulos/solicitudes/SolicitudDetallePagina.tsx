@@ -12,6 +12,7 @@ import { formatearDia, formatearFechaHora } from '../../utilidades/fechas'
 import { useAccionesSolicitud, useRequisitos, useSolicitud } from './solicitudes.api'
 import ModalEvaluacion from './ModalEvaluacion'
 import AvisoTipoTrabajo from './AvisoTipoTrabajo'
+import TarjetaCredenciales from '../credenciales/TarjetaCredenciales'
 
 type Accion = 'enviar' | 'evaluar' | 'aprobar' | 'rechazar' | 'cancelar'
 
@@ -233,6 +234,9 @@ export default function SolicitudDetallePagina() {
               </Table>
             )}
           </Card>
+
+          {/* Solo en solicitudes aprobadas y para quien tenga permisos de credenciales */}
+          <TarjetaCredenciales solicitud={s} />
 
           <Card className="shadow-sm">
             <Card.Body>
