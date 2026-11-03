@@ -9,6 +9,7 @@ import NuevaSolicitudPagina from './modulos/solicitudes/NuevaSolicitudPagina'
 import EmpresasPagina from './modulos/empresas/EmpresasPagina'
 import AuditoriaPagina from './modulos/auditoria/AuditoriaPagina'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
+import ContratistasPagina from './modulos/contratistas/ContratistasPagina'
 
 export default function App() {
   return (
@@ -67,6 +68,7 @@ export default function App() {
             }
           />
 
+          <Route path="/contratistas" element={<RutaProtegida permisos={['contratistas.gestionar']}><ContratistasPagina /></RutaProtegida>} />
           <Route path="*" element={<PaginaNoEncontrada />} />
         </Route>
       </Route>
