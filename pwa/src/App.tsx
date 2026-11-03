@@ -6,6 +6,7 @@ import MiCredencialPagina from './modulos/credencial/MiCredencialPagina'
 import MisSolicitudesPagina from './modulos/solicitudes/MisSolicitudesPagina'
 import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
 import CuentaPagina from './modulos/cuenta/CuentaPagina'
+import DocumentosPagina from './modulos/documentos/DocumentosPagina'
 
 // Rutas de la PWA (todas bajo /pwa por el basename del router)
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/" element={<MiCredencialPagina />} />
           <Route path="/solicitudes" element={<MisSolicitudesPagina />} />
           <Route path="/solicitudes/:id" element={<SolicitudDetallePagina />} />
+          <Route path="/documentos" element={<DocumentosPagina />} />
           <Route path="/cuenta" element={<CuentaPagina />} />
         </Route>
       </Route>
