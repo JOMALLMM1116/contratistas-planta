@@ -13,6 +13,7 @@ import ContratistasPagina from './modulos/contratistas/ContratistasPagina'
 import CapacitacionesPagina from './modulos/capacitaciones/CapacitacionesPagina'
 import DocumentosPagina from './modulos/documentos/DocumentosPagina'
 import IncidentesPagina from './modulos/incidentes/IncidentesPagina'
+import BloqueosPagina from './modulos/bloqueos/BloqueosPagina'
 
 export default function App() {
   return (
@@ -75,6 +76,7 @@ export default function App() {
           <Route path="/documentos" element={<RutaProtegida permisos={['documentos.revisar']}><DocumentosPagina /></RutaProtegida>} />
           <Route path="/capacitaciones" element={<RutaProtegida permisos={['documentos.revisar']}><CapacitacionesPagina /></RutaProtegida>} />
           <Route path="/incidentes" element={<RutaProtegida permisos={['incidentes.gestionar', 'incidentes.reportar']}><IncidentesPagina /></RutaProtegida>} />
+          <Route path="/bloqueos" element={<RutaProtegida permisos={['bloqueos.gestionar']}><BloqueosPagina /></RutaProtegida>} />
           <Route path="*" element={<PaginaNoEncontrada />} />
         </Route>
       </Route>
