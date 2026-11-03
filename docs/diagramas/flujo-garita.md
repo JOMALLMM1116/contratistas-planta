@@ -15,7 +15,7 @@ sequenceDiagram
     RI->>API: Crear solicitud (empresa, contratistas, zonas, fechas, horario)
     API->>BD: solicitudes_acceso en borrador
     RI->>API: Enviar solicitud
-    API->>BD: Verifica contratistas activos y sin bloqueos; estado pendiente
+    API->>BD: Verifica contratistas activos y sin bloqueos, estado pendiente
 
     SI->>API: Evaluación de riesgo (si el tipo de trabajo la exige)
     SI->>API: Autorizar (una o dos etapas según el riesgo)
