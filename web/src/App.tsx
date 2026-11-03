@@ -14,6 +14,9 @@ import SolicitudesPagina from './modulos/solicitudes/SolicitudesPagina'
 import NuevaSolicitudPagina from './modulos/solicitudes/NuevaSolicitudPagina'
 import SolicitudDetallePagina from './modulos/solicitudes/SolicitudDetallePagina'
 
+// operacion (anthony)
+import PermisosTrabajoPagina from './modulos/permisos-trabajo/PermisosTrabajoPagina'
+
 // Personal, cumplimiento, seguridad y administración (Anthony)
 import EmpresasPagina from './modulos/empresas/EmpresasPagina'
 import ContratistasPagina from './modulos/contratistas/ContratistasPagina'
@@ -67,6 +70,14 @@ export default function App() {
             }
           />
 
+          <Route
+            path="/permisos-trabajo"
+            element={
+              <RutaProtegida permisos={['permisos_trabajo.emitir', 'permisos_trabajo.revocar']}>
+                <PermisosTrabajoPagina />
+              </RutaProtegida>
+            }
+          />
           {/* ===== Garita (carga diferida) ===== */}
           <Route
             path="/garita"
