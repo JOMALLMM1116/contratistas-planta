@@ -2,6 +2,7 @@ import type { Prisma } from '../../generated/prisma/client.js';
 import { prisma } from '../../shared/db.js';
 import { AppError } from '../../shared/errors/app-error.js';
 import { paginar } from '../../shared/http/paginacion.js';
+import { fueraDeAlcance, type Alcance } from '../../shared/seguridad/alcance.js';
 import * as contratistasService from '../contratistas/contratistas.service.js';
 import * as empresasService from '../empresas-contratistas/empresas-contratistas.service.js';
 import * as equiposService from '../equipos/equipos.service.js';
@@ -19,6 +20,9 @@ import type {
 
 // Etapas de autorizacion que exige cada nivel de riesgo (ajustar aqui si cambia la regla)
 const ETAPAS_REQUERIDAS: Record<string, number> = { bajo: 1, medio: 1, alto: 2, critico: 2 };
+
+// Alcance por defecto para llamadas internas entre modulos (el controlador siempre pasa el de la sesion)
+const INTERNO: Alcance = { tipo: 'interno' };
 
 type Faltante = { tipo: string; referencia_id: number | null; nombre: string; motivo: string };
 
@@ -47,6 +51,30 @@ const hhmm = (d: Date) => d.toISOString().slice(11, 16);
 
 function formatear<T extends { hora_inicio: Date; hora_fin: Date }>(solicitud: T) {
   return { ...solicitud, hora_inicio: hhmm(solicitud.hora_inicio), hora_fin: hhmm(solicitud.hora_fin) };
+}
+
+// ---- Autorizacion por objeto (SEG-01) ----
+
+// Condicion que limita las solicitudes que puede ver el usuario
+function filtroAlcance(alcance: Alcance): Prisma.solicitudes_accesoWhereInput {
+  switch (alcance.tipo) {
+    case 'interno':
+      return {};
+    case 'empresa':
+      return { empresa_id: alcance.empresaId };
+    case 'contratista':
+      return { solicitud_contratistas: { some: { contratista_id: alcance.contratistaId } } };
+    default:
+      // Falla cerrado: ningun registro
+      return { id: { in: [] } };
+  }
+}
+
+// Si la solicitud existe pero no esta en el alcance, responde igual que si no existiera
+async function verificarAlcance(id: string, alcance: Alcance) {
+  if (alcance.tipo === 'interno') return;
+  const visible = await prisma.solicitudes_acceso.count({ where: { AND: [{ id }, filtroAlcance(alcance)] } });
+  if (visible === 0) throw fueraDeAlcance('SOLICITUD_NO_ENCONTRADA', `No existe la solicitud ${id}`);
 }
 
 async function buscar(id: string) {
@@ -125,7 +153,7 @@ async function validarVinculos(
   }
 }
 
-export async function listar(filtros: ListarSolicitudes) {
+export async function listar(filtros: ListarSolicitudes, alcance: Alcance = INTERNO) {
   const where: Prisma.solicitudes_accesoWhereInput = {};
 
   if (filtros.buscar) {
@@ -142,28 +170,42 @@ export async function listar(filtros: ListarSolicitudes) {
   if (filtros.desde) where.fecha_fin = { gte: filtros.desde };
   if (filtros.hasta) where.fecha_inicio = { lte: filtros.hasta };
 
+  // Los filtros del usuario se combinan con su alcance (no lo pueden ampliar)
+  const condicion: Prisma.solicitudes_accesoWhereInput = { AND: [where, filtroAlcance(alcance)] };
   const orderBy = { [filtros.ordenar_por]: filtros.orden } as Prisma.solicitudes_accesoOrderByWithRelationInput;
 
   const [total, datos] = await prisma.$transaction([
-    prisma.solicitudes_acceso.count({ where }),
-    prisma.solicitudes_acceso.findMany({ where, orderBy, include: incluirResumen, ...paginar(filtros) }),
+    prisma.solicitudes_acceso.count({ where: condicion }),
+    prisma.solicitudes_acceso.findMany({ where: condicion, orderBy, include: incluirResumen, ...paginar(filtros) }),
   ]);
 
   return { datos: datos.map((s) => formatear(s)), total };
 }
 
-export async function obtener(id: string) {
-  const solicitud = await prisma.solicitudes_acceso.findUnique({ where: { id }, include: incluirDetalle });
+export async function obtener(id: string, alcance: Alcance = INTERNO) {
+  const solicitud = await prisma.solicitudes_acceso.findFirst({
+    where: { AND: [{ id }, filtroAlcance(alcance)] },
+    include: incluirDetalle,
+  });
   if (!solicitud) throw new AppError(404, 'SOLICITUD_NO_ENCONTRADA', `No existe la solicitud ${id}`);
   return formatear(solicitud);
 }
 
-export async function requisitos(id: string) {
+export async function requisitos(id: string, alcance: Alcance = INTERNO) {
   await buscar(id);
+  await verificarAlcance(id, alcance);
   return faltantesPorContratista(id);
 }
 
-export async function crear(datos: CrearSolicitud) {
+export async function crear(datos: CrearSolicitud, alcance: Alcance = INTERNO) {
+  // Un usuario externo solo puede crear solicitudes para su propia empresa
+  if (alcance.tipo === 'empresa' && datos.empresa_id !== alcance.empresaId) {
+    throw new AppError(403, 'SIN_PERMISO', 'Solo puede crear solicitudes para su propia empresa');
+  }
+  if (alcance.tipo === 'contratista' || alcance.tipo === 'ninguno') {
+    throw new AppError(403, 'SIN_PERMISO', 'No puede crear solicitudes');
+  }
+
   const empresa = await empresasService.obtener(datos.empresa_id);
   if (empresa.estado !== 'activa') {
     throw new AppError(409, 'EMPRESA_INACTIVA', 'La empresa esta inactiva y no puede solicitar accesos');
@@ -185,8 +227,9 @@ export async function crear(datos: CrearSolicitud) {
   return formatear(creada);
 }
 
-export async function actualizar(id: string, datos: ActualizarSolicitud) {
+export async function actualizar(id: string, datos: ActualizarSolicitud, alcance: Alcance = INTERNO) {
   const solicitud = await buscar(id);
+  await verificarAlcance(id, alcance);
   exigirEstado(solicitud.estado, ['borrador'], 'Solo se puede editar una solicitud en borrador');
 
   const inicio = datos.fecha_inicio ?? solicitud.fecha_inicio;
@@ -215,8 +258,9 @@ export async function actualizar(id: string, datos: ActualizarSolicitud) {
   return formatear(actualizada);
 }
 
-export async function enviar(id: string, datos: EnviarSolicitud) {
+export async function enviar(id: string, datos: EnviarSolicitud, alcance: Alcance = INTERNO) {
   const solicitud = await buscar(id);
+  await verificarAlcance(id, alcance);
   exigirEstado(solicitud.estado, ['borrador'], 'Solo se puede enviar una solicitud en borrador');
 
   const vinculos = await prisma.solicitud_contratistas.findMany({
@@ -242,11 +286,12 @@ export async function enviar(id: string, datos: EnviarSolicitud) {
   }
 
   await prisma.$transaction((tx) => cambiarEstado(tx, id, 'pendiente', datos.usuario_id ?? null, null));
-  return obtener(id);
+  return obtener(id, alcance);
 }
 
-export async function evaluar(id: string, datos: EvaluarSolicitud) {
+export async function evaluar(id: string, datos: EvaluarSolicitud, alcance: Alcance = INTERNO) {
   const solicitud = await buscar(id);
+  await verificarAlcance(id, alcance);
   exigirEstado(solicitud.estado, ['pendiente', 'en_revision'], 'Solo se evalua una solicitud pendiente o en revision');
 
   await prisma.$transaction(async (tx) => {
@@ -261,11 +306,12 @@ export async function evaluar(id: string, datos: EvaluarSolicitud) {
     }
   });
 
-  return obtener(id);
+  return obtener(id, alcance);
 }
 
-export async function autorizar(id: string, datos: AutorizarSolicitud) {
+export async function autorizar(id: string, datos: AutorizarSolicitud, alcance: Alcance = INTERNO) {
   const solicitud = await buscar(id);
+  await verificarAlcance(id, alcance);
   exigirEstado(solicitud.estado, ['pendiente', 'en_revision'], 'Solo se autoriza una solicitud pendiente o en revision');
 
   const tipo = await tiposTrabajoService.obtener(solicitud.tipo_trabajo_id);
@@ -305,20 +351,22 @@ export async function autorizar(id: string, datos: AutorizarSolicitud) {
     }
   });
 
-  return obtener(id);
+  return obtener(id, alcance);
 }
 
-export async function cancelar(id: string, datos: CancelarSolicitud) {
+export async function cancelar(id: string, datos: CancelarSolicitud, alcance: Alcance = INTERNO) {
   const solicitud = await buscar(id);
+  await verificarAlcance(id, alcance);
   exigirEstado(solicitud.estado, ['borrador', 'pendiente', 'en_revision'], 'Solo se cancela una solicitud sin decision final');
 
   await prisma.$transaction((tx) => cambiarEstado(tx, id, 'cancelada', datos.usuario_id ?? null, datos.motivo));
-  return obtener(id);
+  return obtener(id, alcance);
 }
 
 // Solo los borradores se eliminan; las demas quedan como registro (se cancelan)
-export async function eliminar(id: string) {
+export async function eliminar(id: string, alcance: Alcance = INTERNO) {
   const solicitud = await buscar(id);
+  await verificarAlcance(id, alcance);
   exigirEstado(solicitud.estado, ['borrador'], 'Solo se puede eliminar una solicitud en borrador');
   return formatear(await prisma.solicitudes_acceso.delete({ where: { id } }));
 }
