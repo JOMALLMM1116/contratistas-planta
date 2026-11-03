@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import RutaProtegida from './sesion/RutaProtegida'
 import Layout from './layout/Layout'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
+import ReportesPagina from './modulos/reportes/ReportesPagina'
 import { Cargando } from './componentes/EstadosPantalla'
 
 // Generales
@@ -182,6 +183,14 @@ export default function App() {
             }
           />
 
+<Route
+            path="/reportes"
+            element={
+              <RutaProtegida permisos={['reportes.ver']}>
+                <ReportesPagina />
+              </RutaProtegida>
+            }
+          />
           <Route path="*" element={<PaginaNoEncontrada />} />
         </Route>
       </Route>
