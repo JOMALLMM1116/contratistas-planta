@@ -374,7 +374,7 @@ Ramas: `main` (producción final) y `develop` (integración), ambas protegidas: 
 contratistas-planta/
 ├── .github/workflows/ci-cd.yml    Pipeline: pruebas → imagen → despliegue
 ├── db/migrations/                 Migraciones SQL (fuente de verdad del modelo)
-├── docs/                          Enunciado, herramientas y contrato de la API
+├── docs/                          Enunciado, herramientas, contrato de la API y diagramas (docs/diagramas)
 ├── server/                        Backend (Express 5 + TypeScript)
 │   ├── prisma/schema.prisma       Generado por introspección de la base
 │   ├── src/modules/               Un módulo por área: auth, usuarios, roles, empresas-contratistas,
@@ -423,9 +423,15 @@ contratistas-planta/
 
 | Documento | Contenido |
 |---|---|
+| [`docs/diagramas/arquitectura.md`](docs/diagramas/arquitectura.md) | **Diagrama de arquitectura**: componentes, despliegue y capas del monolito |
+| [`docs/diagramas/modelo-datos.md`](docs/diagramas/modelo-datos.md) | **Modelo de base de datos**: diagrama entidad-relación por áreas, claves compuestas, funciones y vistas |
+| [`docs/diagramas/flujo-garita.md`](docs/diagramas/flujo-garita.md) | Flujo de acceso: solicitud, credencial, QR en la PWA y validación en garita |
+| [`docs/diagramas/ci-cd.md`](docs/diagramas/ci-cd.md) | Pipeline de CI/CD hasta producción |
 | `docs/Proyecto_Final_Desarrollo_Web_Proyecto_B.md` | Enunciado del proyecto |
 | `docs/Herramientas_Proyecto_B.md` | Herramientas planificadas por área |
 | `docs/api.md` | Contrato de la API (formato de respuestas, errores y módulos) |
+
+Los diagramas están escritos en Mermaid: GitHub los dibuja al abrir cada archivo.
 
 Formato común de la API:
 
