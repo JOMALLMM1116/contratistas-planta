@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import RutaProtegida from './sesion/RutaProtegida'
 import Layout from './layout/Layout'
 import PaginaNoEncontrada from './componentes/PaginaNoEncontrada'
+import CredencialesPagina from './modulos/credenciales/CredencialesPagina'
 import { Cargando } from './componentes/EstadosPantalla'
 
 // Generales
@@ -197,6 +198,14 @@ export default function App() {
             }
           />
 
+          <Route
+            path="/credenciales"
+            element={
+              <RutaProtegida permisos={['credenciales.emitir', 'credenciales.revocar', 'garita.validar']}>
+                <CredencialesPagina />
+              </RutaProtegida>
+            }
+          />
           <Route path="*" element={<PaginaNoEncontrada />} />
         </Route>
       </Route>
